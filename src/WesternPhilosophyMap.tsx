@@ -13,7 +13,7 @@ import ReactFlow, {
   useReactFlow
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { X, Filter, Loader2, ZoomIn, ZoomOut, Maximize2, MessageSquare, ChevronDown, ChevronUp, Map as MapIcon, Home } from 'lucide-react'
+import { X, Filter, Loader2, ZoomIn, ZoomOut, Maximize2, MessageSquare, ChevronDown, ChevronUp, Map as MapIcon, Home, Github } from 'lucide-react'
 
 import PhilosopherNode from './components/PhilosopherNode'
 import CustomEdge from './components/CustomEdge'
@@ -1929,30 +1929,49 @@ export default function WesternPhilosophyMap({
     <div className="h-screen w-full flex flex-col">
       {/* 顶部标题栏 */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 sm:p-4 md:p-6 shadow-lg">
-        <div className="px-2 sm:px-4 md:px-6 flex items-center justify-between">
-          <div className="flex-1">
+        <div className="px-2 sm:px-4 md:px-6 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">西方哲学思想脉络图</h1>
             <p className="text-xs sm:text-sm md:text-base text-blue-100">探索从古希腊到当代西方哲学思想的传承与演变</p>
           </div>
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {sourceHref && (
-              <a href={sourceHref} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center rounded-md px-2 py-2 text-xs sm:text-sm font-medium text-white hover:bg-white/20 transition-colors"
-                aria-label="查看本版本源码与 AGPL-3.0 许可" title="查看本版本源码与 AGPL-3.0 许可">
-                源码<span className="hidden sm:inline"> · AGPL-3.0</span>
-              </a>
-            )}
-            <a href={homeHref}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 md:gap-2 whitespace-nowrap h-8 md:h-10 text-xs md:text-sm text-white hover:bg-white/20 transition-all duration-200 flex-shrink-0"
-                title="返回首页"
+          <div className="flex items-center justify-end gap-1.5 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto">
+            <Button
+              asChild
+              variant="secondary"
+              size="sm"
+              className="gap-1.5 h-8 md:h-10 px-2.5 sm:px-3 text-xs md:text-sm bg-white/95 text-slate-900 hover:bg-white shadow-sm focus-visible:ring-white"
+            >
+              <a
+                href="https://github.com/adonisly/western-philosophy-map"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="西方哲学图谱 GitHub 源码与 Star 支持（新窗口打开）"
+                title="查看西方哲学图谱源码、提交建议或 Star 支持项目"
               >
-                <Home className="h-3.5 w-3.5 md:h-4 md:w-4" />
-                <span className="hidden sm:inline">返回首页</span>
+                <Github className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
+                <span>GitHub<span className="hidden sm:inline"> / Star</span></span>
+              </a>
+            </Button>
+            {sourceHref && (
+              <Button asChild variant="ghost" size="sm"
+                className="h-8 md:h-10 px-2 text-xs sm:text-sm text-white hover:bg-white/20 focus-visible:ring-white">
+                <a href={sourceHref} target="_blank" rel="noopener noreferrer"
+                  aria-label="查看本版本源码与 AGPL-3.0 许可" title="查看本版本源码与 AGPL-3.0 许可">
+                  源码<span className="hidden sm:inline"> · AGPL-3.0</span>
+                </a>
               </Button>
-            </a>
+            )}
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 md:gap-2 h-8 md:h-10 px-2 sm:px-3 text-xs md:text-sm text-white hover:bg-white/20 focus-visible:ring-white"
+            >
+              <a href={homeHref} aria-label="返回阅读路书首页" title="返回阅读路书首页">
+                <Home className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">返回首页</span>
+              </a>
+            </Button>
           </div>
         </div>
       </div>
@@ -1966,7 +1985,7 @@ export default function WesternPhilosophyMap({
             <div className="hidden lg:flex flex-1"></div>
             
             {/* 中间：搜索框和布局按钮 */}
-            <div className="flex-1 max-w-6xl">
+            <div className="flex-1 min-w-0 md:min-w-[auto] max-w-6xl">
               <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3">
                 {/* 搜索框带光晕效果 */}
                 <div className="relative md:flex-[3] w-full md:min-w-[500px] min-w-0">
@@ -2426,6 +2445,7 @@ export default function WesternPhilosophyMap({
           <div className="p-4 sm:p-5 md:p-6">
             <button
               onClick={() => setSelectedPhilosopher(null)}
+              aria-label="关闭人物详情"
               className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded active:scale-90"
             >
               <X className="h-5 w-5" />

@@ -2,9 +2,36 @@
 
 一个面向**西方哲学入门、哲学史学习与阅读梳理**的开源交互式知识图谱。通过一张可搜索、可筛选的思想地图，梳理西方哲学史脉络，探索西方哲学史发展中的哲学家、哲学流派与思想传承。
 
+**当前公开快照：413 位哲学家 · 115 个流派 · 131 条关系 · 5 种布局 · 无需数据库**
+
 **[在线体验：开源独立版（推荐）](https://western-philosophy.inklinks.io/)**
 
 专注哲学图谱浏览，内容随开源版本更新；纠错和建议通过 [GitHub Issues](https://github.com/adonisly/western-philosophy-map/issues) 提交。
+
+A Chinese-language, interactive **Western philosophy map** for exploring the **history of philosophy**, philosophical schools, philosopher influences and intellectual history. Follow a philosophy timeline by century or explore connections in a searchable knowledge graph. Runs with bundled JSON data; no database or API key required.
+
+[![西方哲学思想脉络图界面：人物卡片、思想传承连线与搜索入口](assets/overview.jpg)](https://western-philosophy.inklinks.io/)
+
+## 操作演示
+
+<details>
+<summary>查看操作动图：搜索、人物详情与布局切换</summary>
+
+![实际操作演示：切换传承布局、拼音搜索苏格拉底、定位人物、查看详情并切换世纪与流派布局](assets/demo.gif)
+
+</details>
+
+以上为实际运行页面的界面采集，展示图谱的局部视图。完整内容可在[在线版](https://western-philosophy.inklinks.io/)中搜索、拖动和缩放探索。
+
+## 30 秒上手
+
+1. 搜索「苏格拉底」或「sgld」，选择建议中的人物并定位卡片。
+2. 点击卡片，阅读生平、主要思想、著作、思想继承与后世影响。
+3. 切换「传承」「世纪」或「流派」布局，从不同线索梳理同一组人物。
+
+如果这个工具对学习有帮助，欢迎点击页面右上角的 **GitHub / Star** 收藏源码；资料纠错请通过 [Issues](https://github.com/adonisly/western-philosophy-map/issues) 提交并附上来源。
+
+## 在线版本与更多阅读资源
 
 **[Readmap 主站版](https://readmap.inklinks.io/knowledge-graphs/western-philosophy)**
 
@@ -16,8 +43,6 @@
 - **资源检索与课程入口**：[网盘搜索](https://readmap.inklinks.io/pan-search)聚合多来源资源检索，[课程资源](https://readmap.inklinks.io/resources)集中整理课程信息；这两个入口需访问口令。
 
 两个版本的**哲学图谱核心浏览功能相同**，内容更新时间和反馈方式有所不同；需要探索更多主题和阅读资源时，可以从[阅读路书首页](https://readmap.inklinks.io/)继续。
-
-A Chinese-language, interactive **Western philosophy map** for exploring the **history of philosophy**, philosophical schools, philosopher influences and intellectual history. Follow a philosophy timeline by century or explore connections in a searchable knowledge graph. Runs with bundled JSON data; no database or API key required.
 
 ## 用思想地图梳理西方哲学史
 
@@ -87,6 +112,8 @@ npm run preview
 ## 贡献
 
 欢迎通过 Issue 提出纠错或通过 Pull Request 贡献代码和资料。详见 [CONTRIBUTING.md](CONTRIBUTING.md)。人物资料与影响关系是持续整理的学习材料，提交资料时请给出可信来源；影响关系的方向与类型需要有依据。
+
+想向同学或读书伙伴介绍这个项目？可参考[项目介绍与演示示例](docs/SHARING.md)，并直接使用仓库内的截图和动图。
 
 ## 复用图谱核心
 
