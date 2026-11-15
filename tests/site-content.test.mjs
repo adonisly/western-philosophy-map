@@ -11,3 +11,9 @@ test('static catalog escapes public content and links to a working graph state u
   assert(result.assets['explore/index.html'].includes('../?layout=lineage&amp;philosopher=p%261'))
   assert(!result.assets['explore/index.html'].includes('测试<人物>'))
 })
+
+test('verification belongs to the deployment and is absent unless explicitly configured',()=>{
+  assert(!createSiteContent(snapshot).head.includes('google-site-verification'))
+  const head = createSiteContent(snapshot, undefined, 'a"<token>').head
+  assert(head.includes('name="google-site-verification" content="a&quot;&lt;token&gt;"'))
+})

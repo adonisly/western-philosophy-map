@@ -14,17 +14,17 @@ export default defineConfig({
   plugins: [{
     name: 'public-site-content',
     transformIndexHtml(html) {
-      const site = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL)
+      const site = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION)
       return html.replace('<!--SITE:HEAD-->', site.head).replace('<!--SITE:INTRO-->', site.intro)
     },
     generateBundle() {
-      const site = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL)
+      const site = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION)
       for (const [fileName, source] of Object.entries(site.assets)) this.emitFile({ type: 'asset', fileName, source })
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const path = new URL(req.url || '/', 'http://localhost').pathname
-        const assets = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL).assets
+        const assets = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION).assets
         const file = path === '/explore/' ? 'explore/index.html' : path.slice(1)
         if (!Object.hasOwn(assets, file)) return next()
         res.setHeader('Content-Type', file.endsWith('.html') ? 'text/html; charset=utf-8' : file.endsWith('.xml') ? 'application/xml' : 'text/plain')

@@ -26,6 +26,7 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
+          VITE_GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
           VITE_SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.sha }}
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'

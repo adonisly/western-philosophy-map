@@ -138,6 +138,8 @@ VITE_SITE_URL=https://example.com/philosophy/ VITE_SOURCE_URL=https://github.com
 
 默认公开地址为本项目独立站。迁移域名时也需修改或移除 `public/CNAME`。分享封面为 [public/social-preview.png](public/social-preview.png)，可编辑源文件为 [assets/social-preview.svg](assets/social-preview.svg)；自建站请同步替换封面上的域名。GitHub 仓库的 Social preview 需在仓库 Settings 中单独上传，网站 Open Graph 不会代替该设置。
 
+如需接入 Google Search Console，可在 GitHub 仓库 Settings → Secrets and variables → Actions → Variables 中设置 `GOOGLE_SITE_VERIFICATION` 为自己账号生成的 HTML 标签 `content` 值。工作流将其传入构建；其他平台可设置 `VITE_GOOGLE_SITE_VERIFICATION`。未配置时不输出验证标签，复用项目不会自动关联原维护者的账号。完成验证后应保留配置。
+
 版本变更见 [CHANGELOG.md](CHANGELOG.md)，有来源的资料修订见 [docs/DATA-CORRECTIONS.md](docs/DATA-CORRECTIONS.md)。
 
 ## 复用图谱核心

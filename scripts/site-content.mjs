@@ -8,13 +8,13 @@ export function siteBase(value = 'https://western-philosophy.inklinks.io/') {
   if (!url.pathname.endsWith('/')) url.pathname += '/'
   return url
 }
-export function createSiteContent(snapshot, configuredUrl) {
+export function createSiteContent(snapshot, configuredUrl, verification = '') {
   const base = siteBase(configuredUrl)
   const e = escapeHtml
   const people = [...snapshot.philosophers].sort((a,b) => String(a.chinese_name || a.name).localeCompare(String(b.chinese_name || b.name),'zh-CN'))
   const sharePath = (person, prefix = './') => prefix + '?layout=lineage&philosopher=' + encodeURIComponent(person.id)
   const intro = `<section class="site-intro" aria-labelledby="intro-title"><h1 id="intro-title">西方哲学思想脉络图</h1><p>${e(siteDescription)}</p><p>${people.length} 位哲学家，${snapshot.schools.length} 个流派，${snapshot.influences.length} 条已录入关系。</p><p>正在加载交互图谱。也可以直接浏览<a href="./explore/">人物与流派索引</a>，或访问<a href="https://github.com/adonisly/western-philosophy-map">GitHub 开源仓库</a>。</p><h2>从人物开始探索西方哲学史</h2><ul>${['苏格拉底','柏拉图','亚里士多德','康德','黑格尔','杜威'].map(name=>people.find(p=>p.chinese_name===name)).filter(Boolean).map(p=>`<li><a href="${e(sharePath(p))}">${e(p.chinese_name)} · ${e(p.name)}</a>：${e(p.school)}</li>`).join('')}</ul><noscript><p>交互图谱需要 JavaScript；人物与流派索引无需 JavaScript 即可阅读。</p></noscript></section>`
-  const head = `<link rel="canonical" href="${e(base.href)}" />
+  const head = `${verification ? '<meta name="google-site-verification" content="' + e(verification) + '" />\n' : ''}<link rel="canonical" href="${e(base.href)}" />
 <meta property="og:type" content="website" /><meta property="og:locale" content="zh_CN" /><meta property="og:site_name" content="西方哲学思想脉络图" />
 <meta property="og:title" content="${e(siteTitle)}" /><meta property="og:description" content="${e(siteDescription)}" /><meta property="og:url" content="${e(base.href)}" />
 <meta property="og:image" content="${e(new URL('social-preview.png',base).href)}" /><meta property="og:image:width" content="1280" /><meta property="og:image:height" content="640" /><meta property="og:image:alt" content="西方哲学思想脉络图：人物、流派与思想传承" />
