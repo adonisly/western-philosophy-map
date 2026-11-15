@@ -961,21 +961,12 @@ export default function WesternPhilosophyMap({
   const [autoFitTrigger, setAutoFitTrigger] = useState<string>('')
   const [resetViewportTrigger, setResetViewportTrigger] = useState<string>('')
   const [hotSearches, setHotSearches] = useState<string[]>(['苏格拉底', '柏拉图', '亚里士多德'])
-  const [filterCollapsed, setFilterCollapsed] = useState(false) // 默认值会在 useEffect 中根据设备设置
+  const [filterCollapsed, setFilterCollapsed] = useState(true)
   const [zoomControlExpanded, setZoomControlExpanded] = useState(false)
   const [minimapExpanded, setMinimapExpanded] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const skipNextAutoFitRef = useRef(false)
-
-  // 检测设备类型并设置筛选面板初始折叠状态
-  useEffect(() => {
-    // 只在客户端执行
-    if (typeof window !== 'undefined') {
-      const isMobile = window.innerWidth < 768 // md breakpoint
-      setFilterCollapsed(isMobile) // 移动端默认折叠，桌面端默认展开
-    }
-  }, [])
 
   // UI 状态
   const [selectedPhilosopher, setSelectedPhilosopher] = useState<Philosopher | null>(null)
