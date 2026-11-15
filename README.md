@@ -35,6 +35,13 @@ A Chinese-language, interactive **Western philosophy map** for exploring the **h
 
 如果这个工具对学习有帮助，欢迎点击页面右上角的 **GitHub / Star** 收藏源码；资料纠错请通过 [Issues](https://github.com/adonisly/western-philosophy-map/issues) 提交并附上来源。
 
+## 分享与探索
+
+- 点击标题栏的「分享」，复制当前布局、搜索与筛选；点击人物详情中的「分享此人物」，让对方直接定位人物并打开详情。链接保留当前站点的域名与路径，不保存拖动和缩放。
+- 从「苏格拉底的思想传承」「实用主义」「德国古典哲学」三个入口开始探索。
+- [人物与流派索引](https://western-philosophy.inklinks.io/explore/)无需 JavaScript 即可阅读，点击姓名进入对应图谱。
+- 示例：[苏格拉底的思想传承](https://western-philosophy.inklinks.io/?layout=lineage&philosopher=socrates_1760717560724)、[实用主义流派](https://western-philosophy.inklinks.io/?layout=school&school=%E5%AE%9E%E7%94%A8%E4%B8%BB%E4%B9%89)。
+
 ## 在线版本与更多阅读资源
 
 **[Readmap 主站版](https://readmap.inklinks.io/knowledge-graphs/western-philosophy)**
@@ -118,6 +125,20 @@ npm run preview
 欢迎通过 Issue 提出纠错或通过 Pull Request 贡献代码和资料。详见 [CONTRIBUTING.md](CONTRIBUTING.md)。人物资料与影响关系是持续整理的学习材料，提交资料时请给出可信来源；影响关系的方向与类型需要有依据。
 
 想向同学或读书伙伴介绍这个项目？可参考[项目介绍与演示示例](docs/SHARING.md)，并直接使用仓库内的截图和动图。
+
+## 网站搜索与分享配置
+
+构建会从公开快照生成首页静态介绍、人物与流派索引、sitemap.xml 和 robots.txt，并加入 canonical、Open Graph 与 Twitter Card。它们改善内容读取与链接预览，不保证收录或排名。
+
+自行部署到其他域名或子目录时，用实际公开地址构建：
+
+```bash
+VITE_SITE_URL=https://example.com/philosophy/ VITE_SOURCE_URL=https://github.com/your-name/your-repo/tree/your-commit npm run build
+```
+
+默认公开地址为本项目独立站。迁移域名时也需修改或移除 `public/CNAME`。分享封面为 [public/social-preview.png](public/social-preview.png)，可编辑源文件为 [assets/social-preview.svg](assets/social-preview.svg)；自建站请同步替换封面上的域名。GitHub 仓库的 Social preview 需在仓库 Settings 中单独上传，网站 Open Graph 不会代替该设置。
+
+版本变更见 [CHANGELOG.md](CHANGELOG.md)，有来源的资料修订见 [docs/DATA-CORRECTIONS.md](docs/DATA-CORRECTIONS.md)。
 
 ## 复用图谱核心
 

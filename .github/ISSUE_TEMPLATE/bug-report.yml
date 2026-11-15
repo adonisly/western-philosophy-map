@@ -1,0 +1,21 @@
+name: 使用问题或改进建议
+description: 描述可复现的问题，或说明你希望完成的学习任务。
+title: "[使用反馈] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 问题或使用场景
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 操作步骤与预期结果
+      description: 如涉及显示问题，请附浏览器、设备尺寸和截图。请勿包含账号、访问令牌等私密信息。
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: 相关分享链接（可选）

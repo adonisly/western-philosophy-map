@@ -1,0 +1,40 @@
+name: 人物或关系资料纠错
+description: 提交人物信息、年代、流派或思想关系的更正，请附参考来源。
+title: "[资料纠错] "
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: 纠错类型
+      options:
+        - 人物资料（姓名、年代、思想或著作）
+        - 流派分类
+        - 思想关系（方向、类型或描述）
+    validations:
+      required: true
+  - type: input
+    id: target
+    attributes:
+      label: 人物、关系或分享链接
+      placeholder: 例如：杜威，或从人物详情复制分享链接
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: 当前内容
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: 建议更正及理由
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: 参考来源
+      description: 请提供原著、学术研究或可靠资料的链接；书籍请注明版本与页码。
+    validations:
+      required: true

@@ -19,6 +19,7 @@ const dataSource: PhilosophyDataSource = {
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WesternPhilosophyMap dataSource={dataSource}
+      catalogHref={import.meta.env.BASE_URL + 'explore/'}
       homeHref="https://readmap.inklinks.io/"
       sourceHref={import.meta.env.VITE_SOURCE_URL || 'https://github.com/adonisly/western-philosophy-map/tree/main'}
       onFeedback={() => window.open('https://github.com/adonisly/western-philosophy-map/issues', '_blank', 'noopener,noreferrer')} />

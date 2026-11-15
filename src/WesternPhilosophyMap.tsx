@@ -10,10 +10,11 @@ import ReactFlow, {
   useEdgesState,
   MarkerType,
   Panel,
-  useReactFlow
+  useReactFlow,
+  useNodesInitialized
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { X, Filter, Loader2, ZoomIn, ZoomOut, Maximize2, MessageSquare, ChevronDown, ChevronUp, Map as MapIcon, Home, Github } from 'lucide-react'
+import { X, Filter, Loader2, ZoomIn, ZoomOut, Maximize2, MessageSquare, ChevronDown, ChevronUp, Map as MapIcon, Home, Github, Share2 } from 'lucide-react'
 
 import PhilosopherNode from './components/PhilosopherNode'
 import CustomEdge from './components/CustomEdge'
@@ -22,6 +23,8 @@ import { Philosopher, Influence, School } from './types/western-philosophy'
 import { searchPhilosophers, addToSearchHistory } from './search'
 import { Button } from './ui/button'
 import type { PhilosophyDataSource, HotSearchTerm } from './data-source'
+import { createShareUrl, readSharedView } from './shared-view.mjs'
+import { ShareDialog } from './components/ShareDialog'
 
 // 自定义节点类型
 const nodeTypes = {
@@ -195,6 +198,24 @@ function ViewportReset({
     return () => clearTimeout(timer)
   }, [trigger, viewport, setViewport])
 
+  return null
+}
+
+function SharedPersonFocus({ request }: { request: { id: string; token: number } | null }) {
+  const ready = useNodesInitialized()
+  const applied = useRef<number | null>(null)
+  const { getNode, fitView } = useReactFlow()
+  useEffect(() => {
+    if (!ready || !request || applied.current === request.token) return
+    const timer = setTimeout(() => {
+      const node = getNode(request.id)
+      if (node) {
+        applied.current = request.token
+        void fitView({ nodes: [node], padding: 0.6, minZoom: 0.8, maxZoom: 1, duration: 400 })
+      }
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [request, ready, getNode, fitView])
   return null
 }
 
@@ -917,6 +938,7 @@ export interface WesternPhilosophyMapProps {
   dataSource: PhilosophyDataSource
   homeHref?: string
   sourceHref?: string
+  catalogHref?: string
   onFeedback?: () => void
   searchHotTerms?: HotSearchTerm[]
   onTrackSearch?: (term: string) => void | Promise<void>
@@ -926,6 +948,7 @@ export default function WesternPhilosophyMap({
   dataSource,
   homeHref = '/',
   sourceHref,
+  catalogHref,
   onFeedback,
   searchHotTerms,
   onTrackSearch
@@ -969,6 +992,10 @@ export default function WesternPhilosophyMap({
   // 布局模式：database | school | century | lineage | compact
   const [layoutMode, setLayoutMode] = useState<'database' | 'school' | 'century' | 'lineage' | 'compact'>('database')
   
+  const [shareInfo, setShareInfo] = useState<{ title: string; url: string } | null>(null)
+  const [sharedFocus, setSharedFocus] = useState<{ id: string; token: number } | null>(null)
+  const restoredView = useRef(false)
+
   // 🔥 动态生成哲学家分组：从实际数据中提取学派并分组
   const philosopherGroups = useMemo(() => {
     if (philosophers.length === 0) return []
@@ -1469,6 +1496,60 @@ export default function WesternPhilosophyMap({
     setDescendantIds(collect(philosopher.id, outMap))
   }, [influences])
 
+  // Restore once after data arrives; also support browser back/forward to a shared URL.
+  useEffect(() => {
+    if (isLoading || philosophers.length === 0) return
+    const restore = () => {
+      const state = readSharedView(window.location.href)
+      const person = philosophers.find(p => p.id === state.philosopher)
+      if (person) skipNextAutoFitRef.current = true
+      setLayoutMode(state.layout)
+      setSearchQuery(state.query)
+      const validSchools = state.schools.filter(name => schools.some(s => s.name === name))
+      const validPeriods = state.periods.filter(id => timePeriods.some(p => p.id === id))
+      const validLevels = state.levels.filter(level => availableLevels.includes(level))
+      setSelectedSchools(new Set(validSchools))
+      setSelectedPeriods(new Set(validPeriods))
+      setSelectedLevels(new Set(validLevels))
+      if (person) {
+        handlePhilosopherClick(person)
+        setSharedFocus({ id: person.id, token: Date.now() })
+      } else {
+        setSelectedPhilosopher(null)
+        setSharedFocus(null)
+      }
+      if (new URL(window.location.href).search) setFilterCollapsed(true)
+    }
+    if (!restoredView.current) { restoredView.current = true; restore() }
+    window.addEventListener('popstate', restore)
+    return () => window.removeEventListener('popstate', restore)
+  }, [isLoading, philosophers, schools, timePeriods, availableLevels, handlePhilosopherClick])
+
+  const openShare = (person?: Philosopher) => {
+    const selected = person || (selectedPhilosopher && filteredPhilosophers.some(p => p.id === selectedPhilosopher.id) ? selectedPhilosopher : undefined)
+    setShareInfo({
+      title: person ? '分享' + person.name.zh : '分享当前图谱',
+      url: createShareUrl(window.location.href, {
+        layout: layoutMode, philosopher: selected?.id,
+        query: person ? '' : searchQuery,
+        schools: person ? [] : Array.from(selectedSchools),
+        periods: person ? [] : Array.from(selectedPeriods),
+        levels: person ? [] : Array.from(selectedLevels)
+      })
+    })
+  }
+
+  const startExploring = (school?: string) => {
+    setSearchQuery(''); setSelectedPhilosopher(null); setSharedFocus(null)
+    setSelectedPeriods(new Set()); setSelectedLevels(new Set()); setFilterCollapsed(true)
+    setSelectedSchools(new Set(school ? [school] : []))
+    setLayoutMode(school ? 'school' : 'lineage')
+    if (!school) {
+      const person = philosophers.find(p => p.name.zh === '苏格拉底')
+      if (person) { handlePhilosopherClick(person); setSharedFocus({ id: person.id, token: Date.now() }) }
+    }
+  }
+
   // 关闭详情面板时清除高亮
   useEffect(() => {
     if (!selectedPhilosopher) {
@@ -1934,7 +2015,7 @@ export default function WesternPhilosophyMap({
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">西方哲学思想脉络图</h1>
             <p className="text-xs sm:text-sm md:text-base text-blue-100">探索从古希腊到当代西方哲学思想的传承与演变</p>
           </div>
-          <div className="flex items-center justify-end gap-1.5 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto">
+          <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto">
             <Button
               asChild
               variant="secondary"
@@ -1951,6 +2032,10 @@ export default function WesternPhilosophyMap({
                 <Github className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
                 <span>GitHub<span className="hidden sm:inline"> / Star</span></span>
               </a>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => openShare()}
+              className="gap-1.5 h-8 md:h-10 px-2 text-xs sm:text-sm text-white hover:bg-white/20 focus-visible:ring-white">
+              <Share2 className="h-3.5 w-3.5" aria-hidden="true" />分享
             </Button>
             {sourceHref && (
               <Button asChild variant="ghost" size="sm"
@@ -1980,13 +2065,13 @@ export default function WesternPhilosophyMap({
       <div className="bg-gradient-to-b from-blue-50/50 to-white border-b border-gray-200 p-3 sm:p-4 md:p-6 shadow-sm">
         <div className="px-2 sm:px-4 md:px-6 space-y-3 md:space-y-4">
           {/* 搜索框区域 - 居中显示 */}
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-2 md:gap-3">
             {/* 左侧占位 */}
             <div className="hidden lg:flex flex-1"></div>
             
             {/* 中间：搜索框和布局按钮 */}
-            <div className="flex-1 min-w-0 md:min-w-[auto] max-w-6xl">
-              <div className="flex flex-col md:flex-row items-center gap-2 md:gap-3">
+            <div className="w-full lg:w-auto flex-1 min-w-0 lg:min-w-[auto] max-w-6xl">
+              <div className="flex flex-col lg:flex-row items-center gap-2 md:gap-3">
                 {/* 搜索框带光晕效果 */}
                 <div className="relative md:flex-[3] w-full md:min-w-[500px] min-w-0">
                   <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300"></div>
@@ -2021,6 +2106,7 @@ export default function WesternPhilosophyMap({
                 {/* 布局模式切换 */}
                 <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
                   <Button
+                    aria-pressed={layoutMode === 'database'}
                     variant={layoutMode === 'database' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
@@ -2028,6 +2114,7 @@ export default function WesternPhilosophyMap({
                     title="使用数据库配置的位置"
                   >默认</Button>
                   <Button
+                    aria-pressed={layoutMode === 'compact'}
                     variant={layoutMode === 'compact' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
@@ -2035,18 +2122,21 @@ export default function WesternPhilosophyMap({
                     title="紧凑布局：优化横向排列，解决位置冲突"
                   >紧凑</Button>
                   <Button
+                    aria-pressed={layoutMode === 'school'}
                     variant={layoutMode === 'school' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
                     onClick={() => { setLayoutMode('school'); skipNextAutoFitRef.current = true; setResetViewportTrigger(`layout_school_${Date.now()}`) }}
                   >流派</Button>
                   <Button
+                    aria-pressed={layoutMode === 'century'}
                     variant={layoutMode === 'century' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
                     onClick={() => { setLayoutMode('century'); skipNextAutoFitRef.current = true; setResetViewportTrigger(`layout_century_${Date.now()}`) }}
                   >世纪</Button>
                   <Button
+                    aria-pressed={layoutMode === 'lineage'}
                     variant={layoutMode === 'lineage' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
@@ -2129,6 +2219,7 @@ export default function WesternPhilosophyMap({
                   <Button
                     variant="ghost"
                     size="sm"
+                    aria-label="清除全部筛选"
                     onClick={handleClearFilters}
                     className="text-xs h-7 px-2 md:px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
@@ -2140,6 +2231,8 @@ export default function WesternPhilosophyMap({
                 <Button
                   variant="ghost"
                   size="sm"
+                  aria-label={filterCollapsed ? "展开筛选条件" : "收起筛选条件"}
+                  aria-expanded={!filterCollapsed}
                   onClick={() => setFilterCollapsed(!filterCollapsed)}
                   className="text-xs h-7 px-2 md:px-3"
                 >
@@ -2294,8 +2387,18 @@ export default function WesternPhilosophyMap({
         </div>
       </div>
 
+      <nav aria-label="探索起点" className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-gray-100 bg-white px-4 sm:px-8 py-2 text-xs text-gray-600">
+        <span>从这里开始</span>
+        <button className="rounded text-blue-700 hover:underline focus-visible:outline-blue-600" onClick={() => startExploring()}>苏格拉底的思想传承</button>
+        {['实用主义', '德国古典哲学'].filter(name => schools.some(s => s.name === name)).map(name =>
+          <button key={name} className="rounded text-blue-700 hover:underline focus-visible:outline-blue-600" onClick={() => startExploring(name)}>{name}</button>)}
+        {catalogHref && <a href={catalogHref} className="ml-auto text-blue-700 hover:underline">人物与流派索引</a>}
+      </nav>
+
+      {shareInfo && <ShareDialog title={shareInfo.title} url={shareInfo.url} onClose={() => setShareInfo(null)} />}
+
       {/* React Flow 画布 */}
-      <div className="flex-1 bg-gray-50">
+      <div className="flex-1 min-h-0 bg-gray-50">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -2330,6 +2433,8 @@ export default function WesternPhilosophyMap({
             trigger={autoFitTrigger}
             centerMode={!!searchQuery.trim()} // 搜索时启用中心定位模式
           />
+
+          <SharedPersonFocus request={sharedFocus} />
 
           <ViewportReset trigger={resetViewportTrigger} viewport={INITIAL_VIEWPORT} />
           
@@ -2458,6 +2563,10 @@ export default function WesternPhilosophyMap({
                 </h2>
                 <p className="text-sm sm:text-base text-gray-600 italic">{selectedPhilosopher.name.en}</p>
               </div>
+
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => openShare(selectedPhilosopher)}>
+                <Share2 className="h-4 w-4" aria-hidden="true" />分享此人物
+              </Button>
 
               <div className="text-xs sm:text-sm text-gray-600">
                 {selectedPhilosopher.birthYear} ~ {selectedPhilosopher.deathYear}

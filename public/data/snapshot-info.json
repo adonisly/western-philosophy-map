@@ -1,12 +1,13 @@
 {
   "exportedAt": "2026-11-15T15:30:14.871Z",
   "source": "https://readmap.inklinks.io/knowledge-graphs/western-philosophy",
-  "sha256": "f02679fa856d801e048310f518f70a2c6ecf3892ca3e278086b94fd23e7781ca",
+  "sha256": "bd5793485dd92e58ce1c8312b65e4b5098336d2461c5f7828d60c780ba26c5dc",
   "counts": {
     "philosophers": 413,
     "influences": 131,
     "schools": 115,
     "influenceTypes": 7,
     "hotSearches": 6
-  }
+  },
+  "updatedAt": "2026-11-15T17:43:51.191Z"
 }
