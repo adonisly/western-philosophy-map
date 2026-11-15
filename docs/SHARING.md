@@ -27,6 +27,8 @@
 ## 配图
 
 - [图谱界面截图](../assets/overview.jpg)
-- [实际操作动图](../assets/demo.gif)
+- [52 秒完整操作演示（MP4，中文字幕）](../assets/demo.mp4)
+- [17 秒操作动图预览](../assets/demo.gif)
+- [演示视频封面](../assets/demo-poster.jpg)
 
 介绍时优先展示一个具体操作，让读者自己体验。收到资料更正时，尽量保留来源与修改理由，方便审核和后续维护。

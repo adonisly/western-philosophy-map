@@ -18,10 +18,12 @@ A Chinese-language, interactive **Western philosophy map** for exploring the **h
 
 ## 操作演示
 
-<details>
-<summary>查看操作动图：搜索、人物详情与布局切换</summary>
+[观看 52 秒完整操作演示（MP4，约 2.6 MB，中文字幕）](assets/demo.mp4) · [录制内容与分镜](docs/DEMO.md)
 
-![实际操作演示：切换传承布局、拼音搜索苏格拉底、定位人物、查看详情并切换世纪与流派布局](assets/demo.gif)
+<details>
+<summary>查看 17 秒动图预览：搜索与人物详情</summary>
+
+![实际操作演示预览：拼音首字母搜索苏格拉底、定位人物并打开详情，附中文操作说明](assets/demo.gif)
 
 </details>
 
