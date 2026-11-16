@@ -14,7 +14,7 @@ import ReactFlow, {
   useNodesInitialized
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { X, Filter, Loader2, ZoomIn, ZoomOut, Maximize2, MessageSquare, ChevronDown, ChevronUp, Map as MapIcon, BookOpen, Github, Share2 } from 'lucide-react'
+import { X, Filter, Loader2, ZoomIn, ZoomOut, Maximize2, MessageSquare, ChevronDown, ChevronUp, Map as MapIcon, BookOpen, Github, Landmark, Share2 } from 'lucide-react'
 
 import PhilosopherNode from './components/PhilosopherNode'
 import CustomEdge from './components/CustomEdge'
@@ -26,6 +26,28 @@ import type { PhilosophyDataSource, HotSearchTerm } from './data-source'
 import { createShareUrl, readSharedView } from './shared-view.mjs'
 import { I18nProvider, useI18n, type Locale, type Translations } from './i18n'
 import { ShareDialog } from './components/ShareDialog'
+
+const MAP_HEADER_CSS = `
+.philosophy-hero{--hero-gutter:clamp(32px,3.5vw,72px);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0;padding:20px var(--hero-gutter);color:#fff;background:linear-gradient(to right,#2563eb,#9333ea);box-shadow:0 6px 20px rgba(15,23,42,.12)}
+.philosophy-hero.has-locale{display:grid;grid-template-columns:minmax(0,1fr) auto auto}
+.philosophy-hero .hero-text{flex:1;min-width:0}
+.philosophy-hero h1{display:flex;align-items:center;gap:10px;margin:0;color:#fff;font-size:clamp(20px,3vw,30px);font-weight:800;letter-spacing:.5px;line-height:1.2}
+.philosophy-hero h1 svg{flex-shrink:0}
+.philosophy-hero p{margin:6px 0 0;font-size:13.5px;color:rgba(255,255,255,.85)}
+.philosophy-hero .hero-brand{display:inline-flex;align-items:center;gap:6px;min-height:28px;margin:0 0 7px -7px;padding:4px 7px;border-radius:5px;color:#fff;text-decoration:none;font-size:12px;font-weight:600;line-height:20px}
+.philosophy-hero .hero-brand:hover{background:rgba(255,255,255,.14);text-decoration:underline;text-underline-offset:3px}
+.philosophy-hero .hero-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.philosophy-hero .hero-actions>a,.philosophy-hero .hero-actions>button,.philosophy-hero .hero-language{color:inherit;font:inherit;font-size:12px;border:1px solid #ffffff66;border-radius:6px;background:transparent;padding:7px 9px;text-decoration:none;cursor:pointer}
+.philosophy-hero .hero-actions>a:hover,.philosophy-hero .hero-actions>button:hover,.philosophy-hero .hero-language:hover{background:#ffffff20}
+.philosophy-hero .hero-actions .hero-github{display:inline-flex;align-items:center;gap:6px;background:#fffffff2;border-color:transparent;color:#111827;font-weight:600;white-space:nowrap}
+.philosophy-hero .hero-actions .hero-github:hover{background:#fff}
+.philosophy-hero .hero-language{white-space:nowrap}
+.philosophy-hero a:focus-visible,.philosophy-hero button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+@media(max-width:1023px){.philosophy-hero.has-locale{grid-template-columns:minmax(0,1fr) auto}.philosophy-hero.has-locale .hero-actions{grid-column:1/-1;grid-row:2;min-width:0}.philosophy-hero .hero-language{grid-column:2;grid-row:1;align-self:start}}
+@media(max-width:860px){.philosophy-hero{--hero-gutter:clamp(16px,4vw,28px);padding-top:14px;padding-bottom:14px;gap:10px}.philosophy-hero p{font-size:11.5px}}
+@media(max-width:700px){.philosophy-hero{flex-wrap:wrap}.philosophy-hero .hero-actions{justify-content:flex-start}}
+@media(max-width:520px){.philosophy-hero{padding:14px 16px;gap:10px}}
+`
 
 // 自定义节点类型
 const nodeTypes = {
@@ -2024,62 +2046,40 @@ function MapContent({
   return (
     <div className="h-screen w-full flex flex-col">
       {/* 顶部标题栏 */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 sm:p-4 md:p-6 shadow-lg">
-        <div className={`px-2 sm:px-4 md:px-6 gap-2 sm:gap-3 ${onLocaleChange ? 'grid grid-cols-[minmax(0,1fr)_auto] items-center lg:grid-cols-[minmax(0,1fr)_auto_auto]' : 'flex flex-col items-start sm:flex-row sm:items-center sm:justify-between'}`}>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">{t('西方哲学思想脉络图')}</h1>
-            <p className="text-xs sm:text-sm md:text-base text-blue-100">{t('探索从古希腊到当代西方哲学思想的传承与演变')}</p>
+      <header className={`philosophy-hero${onLocaleChange ? ' has-locale' : ''}`}>
+          <style>{MAP_HEADER_CSS}</style>
+          <div className="hero-text">
+            <a className="hero-brand" href={homeHref} aria-label={t('返回阅读路书首页')} title={t('阅读路径与知识图谱')}>
+              <BookOpen size={14} strokeWidth={2} aria-hidden="true" /><span>{t('阅读路书')}</span>
+            </a>
+            <h1><Landmark size={22} strokeWidth={2} aria-hidden="true" />{t('西方哲学思想脉络图')}</h1>
+            <p>{t('探索从古希腊到当代西方哲学思想的传承与演变')}</p>
           </div>
-          <div className={`flex flex-wrap items-center justify-end gap-1 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto ${onLocaleChange ? 'col-span-2 row-start-2 lg:col-span-1 lg:col-start-2 lg:row-start-1' : ''}`}>
-            <Button
-              asChild
-              variant="secondary"
-              size="sm"
-              className="gap-1.5 h-8 md:h-10 px-2.5 sm:px-3 text-xs md:text-sm bg-white/95 text-slate-900 hover:bg-white shadow-sm focus-visible:ring-white"
-            >
+          <nav className="hero-actions" aria-label={t('项目与分享')}>
               <a
+                className="hero-github"
                 href="https://github.com/adonisly/western-philosophy-map"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={t('西方哲学图谱 GitHub 源码与 Star 支持（新窗口打开）')}
                 title={t('查看西方哲学图谱源码、提交建议或 Star 支持项目')}
               >
-                <Github className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
-                <span>GitHub<span className="hidden sm:inline"> / Star</span></span>
+                <Github size={14} aria-hidden="true" /><span>GitHub / Star</span>
               </a>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => openShare()}
-              className="gap-1.5 h-8 md:h-10 px-2 text-xs sm:text-sm text-white hover:bg-white/20 focus-visible:ring-white">
-              <Share2 className="h-3.5 w-3.5" aria-hidden="true" />{t("分享")}
-            </Button>
+            <button type="button" onClick={() => openShare()}>{t('分享')}</button>
             {sourceHref && (
-              <Button asChild variant="ghost" size="sm"
-                className="h-8 md:h-10 px-2 text-xs sm:text-sm text-white hover:bg-white/20 focus-visible:ring-white">
                 <a href={sourceHref} target="_blank" rel="noopener noreferrer"
                   aria-label={t('查看本版本源码与 AGPL-3.0 许可')} title={t('查看本版本源码与 AGPL-3.0 许可')}>
-                  {t('源码')}<span className="hidden sm:inline"> · AGPL-3.0</span>
+                  {t('源码')} · AGPL-3.0
                 </a>
-              </Button>
             )}
-            <Button
-              asChild
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 md:gap-2 h-8 md:h-10 px-2 sm:px-3 text-xs md:text-sm text-white hover:bg-white/20 focus-visible:ring-white"
-            >
-              <a href={homeHref} aria-label={t('返回阅读路书首页')} title={t('返回阅读路书首页')}>
-                <BookOpen className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
-                <span>{t('阅读路书')}</span>
-              </a>
-            </Button>
-          </div>
-          {onLocaleChange && <Button variant="secondary" size="sm" className="col-start-2 row-start-1 lg:col-start-3 self-start lg:self-center h-8 md:h-10 text-xs md:text-sm" lang={en ? 'zh-CN' : 'en'}
+          </nav>
+          {onLocaleChange && <button type="button" className="hero-language" lang={en ? 'zh-CN' : 'en'}
             aria-label={en ? '切换为中文' : 'Switch to English'} onClick={() => onLocaleChange(en ? 'zh' : 'en', {
               layout: layoutMode, philosopher: selectedPhilosopher?.id, query: searchQuery,
               schools: Array.from(selectedSchools), periods: Array.from(selectedPeriods), levels: Array.from(selectedLevels)
-            })}>{en ? '中文' : 'English'}</Button>}
-        </div>
-      </div>
+            })}>{en ? '中文' : 'English'}</button>}
+      </header>
 
       {/* 搜索和筛选工具栏 */}
       <div className="bg-gradient-to-b from-blue-50/50 to-white border-b border-gray-200 p-3 sm:p-4 md:p-6 shadow-sm">
