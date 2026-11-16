@@ -2025,17 +2025,12 @@ function MapContent({
     <div className="h-screen w-full flex flex-col">
       {/* 顶部标题栏 */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 sm:p-4 md:p-6 shadow-lg">
-        <div className="px-2 sm:px-4 md:px-6 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <div className={`px-2 sm:px-4 md:px-6 gap-2 sm:gap-3 ${onLocaleChange ? 'grid grid-cols-[minmax(0,1fr)_auto] items-center lg:grid-cols-[minmax(0,1fr)_auto_auto]' : 'flex flex-col items-start sm:flex-row sm:items-center sm:justify-between'}`}>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">{t('西方哲学思想脉络图')}</h1>
             <p className="text-xs sm:text-sm md:text-base text-blue-100">{t('探索从古希腊到当代西方哲学思想的传承与演变')}</p>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto">
-            {onLocaleChange && <Button variant="secondary" size="sm" className="h-8 md:h-10 text-xs md:text-sm" lang={en ? 'zh-CN' : 'en'}
-              aria-label={en ? '切换为中文' : 'Switch to English'} onClick={() => onLocaleChange(en ? 'zh' : 'en', {
-                layout: layoutMode, philosopher: selectedPhilosopher?.id, query: searchQuery,
-                schools: Array.from(selectedSchools), periods: Array.from(selectedPeriods), levels: Array.from(selectedLevels)
-              })}>{en ? '中文' : 'English'}</Button>}
+          <div className={`flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto ${onLocaleChange ? 'col-span-2 row-start-2 lg:col-span-1 lg:col-start-2 lg:row-start-1' : ''}`}>
             <Button
               asChild
               variant="secondary"
@@ -2078,6 +2073,11 @@ function MapContent({
               </a>
             </Button>
           </div>
+          {onLocaleChange && <Button variant="secondary" size="sm" className="col-start-2 row-start-1 lg:col-start-3 self-start lg:self-center h-8 md:h-10 text-xs md:text-sm" lang={en ? 'zh-CN' : 'en'}
+            aria-label={en ? '切换为中文' : 'Switch to English'} onClick={() => onLocaleChange(en ? 'zh' : 'en', {
+              layout: layoutMode, philosopher: selectedPhilosopher?.id, query: searchQuery,
+              schools: Array.from(selectedSchools), periods: Array.from(selectedPeriods), levels: Array.from(selectedLevels)
+            })}>{en ? '中文' : 'English'}</Button>}
         </div>
       </div>
 
