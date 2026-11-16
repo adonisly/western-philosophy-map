@@ -11,7 +11,7 @@ const messages: Record<string,string> = {
   '西方哲学图谱 GitHub 源码与 Star 支持（新窗口打开）':'Western Philosophy Map on GitHub (opens in a new tab)',
   '查看西方哲学图谱源码、提交建议或 Star 支持项目':'Explore the source, report an issue or star the project',
   '查看本版本源码与 AGPL-3.0 许可':'Source for this version and AGPL-3.0 license',
-  '返回阅读路书首页':'Visit ReadMap (Chinese)', '返回首页':'ReadMap', '源码':'Source',
+  '返回阅读路书首页':'Visit ReadMap (Chinese)', '返回首页':'ReadMap', '阅读路书':'ReadMap', '源码':'Source',
   '分享':'Share', '分享当前图谱':'Share this map', '分享此人物':'Share this philosopher',
   '搜索哲学家（中文/英文）、流派或思想（支持拼音/首字母）':'Search philosophers, schools or ideas…',
   '搜索哲学家（中文/英文）、流派或思想...':'Search philosophers, schools or ideas…',

@@ -14,7 +14,7 @@ import ReactFlow, {
   useNodesInitialized
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { X, Filter, Loader2, ZoomIn, ZoomOut, Maximize2, MessageSquare, ChevronDown, ChevronUp, Map as MapIcon, Home, Github, Share2 } from 'lucide-react'
+import { X, Filter, Loader2, ZoomIn, ZoomOut, Maximize2, MessageSquare, ChevronDown, ChevronUp, Map as MapIcon, BookOpen, Github, Share2 } from 'lucide-react'
 
 import PhilosopherNode from './components/PhilosopherNode'
 import CustomEdge from './components/CustomEdge'
@@ -2030,7 +2030,7 @@ function MapContent({
             <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">{t('西方哲学思想脉络图')}</h1>
             <p className="text-xs sm:text-sm md:text-base text-blue-100">{t('探索从古希腊到当代西方哲学思想的传承与演变')}</p>
           </div>
-          <div className={`flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto ${onLocaleChange ? 'col-span-2 row-start-2 lg:col-span-1 lg:col-start-2 lg:row-start-1' : ''}`}>
+          <div className={`flex flex-wrap items-center justify-end gap-1 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto ${onLocaleChange ? 'col-span-2 row-start-2 lg:col-span-1 lg:col-start-2 lg:row-start-1' : ''}`}>
             <Button
               asChild
               variant="secondary"
@@ -2068,8 +2068,8 @@ function MapContent({
               className="gap-1.5 md:gap-2 h-8 md:h-10 px-2 sm:px-3 text-xs md:text-sm text-white hover:bg-white/20 focus-visible:ring-white"
             >
               <a href={homeHref} aria-label={t('返回阅读路书首页')} title={t('返回阅读路书首页')}>
-                <Home className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">{t('返回首页')}</span>
+                <BookOpen className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
+                <span>{t('阅读路书')}</span>
               </a>
             </Button>
           </div>
