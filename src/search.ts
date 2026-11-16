@@ -67,7 +67,7 @@ export function buildPhilosopherIndex(philosopher: Philosopher): PhilosopherSear
     zhNameIndex: generateSearchIndex(philosopher.name.zh),
     enNameIndex: generateSearchIndex(philosopher.name.en),
     schoolIndex: generateSearchIndex(philosopher.school),
-    ideasIndex: philosopher.mainIdeas.map(idea => generateSearchIndex(idea))
+    ideasIndex: [...philosopher.mainIdeas, ...(philosopher.searchTerms || [])].map(idea => generateSearchIndex(idea))
   }
 }
 

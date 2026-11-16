@@ -41,3 +41,7 @@
 4. 从数据库重新导出公开字段，检查没有丢失 PR 或主站后续修改，再通过本仓库的 PR 更新快照。
 
 仓库未提供自动写入生产数据库的导入器。代码同步只更新代码与快照文件，不会修改数据库；不要用旧快照整表覆盖数据库。
+
+## English translations / 英文译文
+
+See [docs/TRANSLATING.md](docs/TRANSLATING.md) for stable IDs, source matching, review states and terminology. Update translations when changing Chinese source fields, then run `npm run check:translations`. English drafts and translated quotations must retain their status labels until reviewed. Keep README.md and README.en.md aligned.

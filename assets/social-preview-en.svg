@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <rect width="1280" height="640" fill="#f8fafc"/>
+  <rect x="0" y="0" width="16" height="640" fill="#2563eb"/>
+  <path d="M690 0H1280V640H690Z" fill="#eff6ff"/>
+  <g font-family="PingFang SC, Noto Sans CJK SC, sans-serif" fill="#172033">
+    <text x="64" y="142" font-size="48" font-weight="700">Western</text>
+    <text x="64" y="211" font-size="48" font-weight="700">Philosophy Map</text>
+    <text x="66" y="266" font-size="23" fill="#475569">An interactive history of ideas</text>
+    <text x="66" y="350" font-size="25">Thinkers, schools and influences</text>
+    <text x="66" y="395" font-size="22" fill="#475569">Search · Change layouts · Explore</text>
+    <text x="66" y="493" font-size="21" fill="#1d4ed8">Open source · No login required</text>
+    <text x="66" y="567" font-size="19" fill="#475569">western-philosophy.inklinks.io/en/</text>
+  </g>
+  <g stroke="#64748b" stroke-width="3" fill="none">
+    <path d="M950 199V254"/><path d="M950 364V419"/>
+    <path d="m943 246 7 8 7-8m-14 165 7 8 7-8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g font-family="PingFang SC, Noto Sans CJK SC, sans-serif">
+    <rect x="768" y="89" width="364" height="110" rx="12" fill="white" stroke="#14b8a6" stroke-width="2"/>
+    <rect x="768" y="89" width="8" height="110" rx="4" fill="#14b8a6"/>
+    <text x="798" y="135" font-size="29" font-weight="600" fill="#172033">Socrates</text><text x="798" y="171" font-size="19" fill="#475569">Questioning virtue</text>
+    <rect x="768" y="254" width="364" height="110" rx="12" fill="white" stroke="#6366f1" stroke-width="2"/>
+    <rect x="768" y="254" width="8" height="110" rx="4" fill="#6366f1"/>
+    <text x="798" y="300" font-size="29" font-weight="600" fill="#172033">Plato</text><text x="798" y="336" font-size="19" fill="#475569">Exploring Forms and knowledge</text>
+    <rect x="768" y="419" width="364" height="110" rx="12" fill="white" stroke="#f59e0b" stroke-width="2"/>
+    <rect x="768" y="419" width="8" height="110" rx="4" fill="#f59e0b"/>
+    <text x="798" y="465" font-size="29" font-weight="600" fill="#172033">Aristotle</text><text x="798" y="501" font-size="19" fill="#475569">Investigating being and causes</text>
+    <text x="965" y="234" font-size="16" fill="#475569">Teacher–student</text><text x="965" y="399" font-size="16" fill="#475569">Teacher–student</text>
+  </g>
+</svg>

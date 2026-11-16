@@ -25,6 +25,7 @@ import {
  */
 export interface Philosopher {
   id: string;
+  searchTerms?: string[];
   name: {
     zh: string;  // 中文名
     en: string;  // 英文名

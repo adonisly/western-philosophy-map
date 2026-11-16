@@ -24,6 +24,7 @@ import { searchPhilosophers, addToSearchHistory } from './search'
 import { Button } from './ui/button'
 import type { PhilosophyDataSource, HotSearchTerm } from './data-source'
 import { createShareUrl, readSharedView } from './shared-view.mjs'
+import { I18nProvider, useI18n, type Locale, type Translations } from './i18n'
 import { ShareDialog } from './components/ShareDialog'
 
 // 自定义节点类型
@@ -38,6 +39,7 @@ const edgeTypes = {
 
 // 缩放控制组件
 function ZoomControls({ onResetNodes }: { onResetNodes: () => void }) {
+  const { t } = useI18n()
   const reactFlowInstance = useReactFlow()
   
   const handleZoomIn = () => {
@@ -73,7 +75,7 @@ function ZoomControls({ onResetNodes }: { onResetNodes: () => void }) {
           size="sm"
           onClick={handleZoomIn}
           className="h-8 w-full border border-gray-200 hover:bg-gray-100 text-xs"
-          title="放大"
+          title={t('放大')}
         >
           <ZoomIn className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
@@ -82,7 +84,7 @@ function ZoomControls({ onResetNodes }: { onResetNodes: () => void }) {
           size="sm"
           onClick={handleZoomOut}
           className="h-8 w-full border border-gray-200 hover:bg-gray-100 text-xs"
-          title="缩小"
+          title={t('缩小')}
         >
           <ZoomOut className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
@@ -91,7 +93,7 @@ function ZoomControls({ onResetNodes }: { onResetNodes: () => void }) {
           size="sm"
           onClick={handleFitView}
           className="h-8 w-full border border-gray-200 hover:bg-gray-100 text-xs"
-          title="适应视图"
+          title={t('适应视图')}
         >
           <Maximize2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
@@ -100,9 +102,9 @@ function ZoomControls({ onResetNodes }: { onResetNodes: () => void }) {
           size="sm"
           onClick={handleReset}
           className="h-8 w-full border border-gray-200 hover:bg-gray-100 text-xs"
-          title="重置节点位置和视图状态"
+          title={t('重置节点位置和视图状态')}
         >
-          重置
+          {t("重置")}
         </Button>
       </div>
     </div>
@@ -936,6 +938,9 @@ function resolveCollisions(positions: Map<string, LayoutPosition>): Map<string, 
 
 export interface WesternPhilosophyMapProps {
   dataSource: PhilosophyDataSource
+  locale?: Locale
+  translations?: Translations
+  onLocaleChange?: (locale: Locale, state: ReturnType<typeof readSharedView>) => void
   homeHref?: string
   sourceHref?: string
   catalogHref?: string
@@ -944,15 +949,21 @@ export interface WesternPhilosophyMapProps {
   onTrackSearch?: (term: string) => void | Promise<void>
 }
 
-export default function WesternPhilosophyMap({
+export default function WesternPhilosophyMap(props: WesternPhilosophyMapProps) {
+  return <I18nProvider locale={props.locale} translations={props.translations}><MapContent {...props} /></I18nProvider>
+}
+
+function MapContent({
   dataSource,
   homeHref = '/',
   sourceHref,
   catalogHref,
   onFeedback,
   searchHotTerms,
-  onTrackSearch
+  onTrackSearch,
+  onLocaleChange
 }: WesternPhilosophyMapProps) {
+  const { t, en, localize, primaryName, secondaryName, schoolLabel, year, century } = useI18n()
   // 数据状态
   const [philosophers, setPhilosophers] = useState<Philosopher[]>([])
   const [influences, setInfluences] = useState<Influence[]>([])
@@ -983,6 +994,8 @@ export default function WesternPhilosophyMap({
   // 布局模式：database | school | century | lineage | compact
   const [layoutMode, setLayoutMode] = useState<'database' | 'school' | 'century' | 'lineage' | 'compact'>('database')
   
+  const displayedPerson = selectedPhilosopher ? localize(selectedPhilosopher) : null
+
   const [shareInfo, setShareInfo] = useState<{ title: string; url: string } | null>(null)
   const [sharedFocus, setSharedFocus] = useState<{ id: string; token: number } | null>(null)
   const restoredView = useRef(false)
@@ -1227,6 +1240,11 @@ export default function WesternPhilosophyMap({
           positionOverride: p.position_override || null
         }))
 
+        for (const p of transformedPhilosophers) {
+          const english = localize(p, true)
+          p.searchTerms = [english.name.en, schoolLabel(p.school, true), ...english.mainIdeas, ...(english.majorWorks || []), ...(Array.isArray(english.detailedBio) ? english.detailedBio : [english.detailedBio || ''])]
+        }
+
         // 映射数据库的 influence_type 到前端类型
         const mapInfluenceType = (dbType: string): 'direct' | 'indirect' | 'opposition' => {
           switch (dbType) {
@@ -1285,7 +1303,7 @@ export default function WesternPhilosophyMap({
       } catch (err) {
         if (cancelled) return
         console.error('❌ Error fetching philosophy data:', err)
-        setError('Failed to load philosophy data. Please try again later.')
+        setError(en ? 'Failed to load philosophy data. Please try again later.' : '无法加载哲学数据，请稍后重试。')
       } finally {
         if (!cancelled) setIsLoading(false)
       }
@@ -1293,7 +1311,7 @@ export default function WesternPhilosophyMap({
 
     fetchData()
     return () => { cancelled = true }
-  }, [dataSource])
+  }, [dataSource, localize, schoolLabel])
 
   useEffect(() => {
     if (!dataSource.subscribeToPhilosophers) return
@@ -1519,7 +1537,7 @@ export default function WesternPhilosophyMap({
   const openShare = (person?: Philosopher) => {
     const selected = person || (selectedPhilosopher && filteredPhilosophers.some(p => p.id === selectedPhilosopher.id) ? selectedPhilosopher : undefined)
     setShareInfo({
-      title: person ? '分享' + person.name.zh : '分享当前图谱',
+      title: person ? `${t('分享')} ${primaryName(person)}` : t('分享当前图谱'),
       url: createShareUrl(window.location.href, {
         layout: layoutMode, philosopher: selected?.id,
         query: person ? '' : searchQuery,
@@ -1529,6 +1547,12 @@ export default function WesternPhilosophyMap({
       })
     })
   }
+
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape' && !shareInfo) setSelectedPhilosopher(null) }
+    window.addEventListener('keydown',close)
+    return () => window.removeEventListener('keydown',close)
+  },[shareInfo])
 
   const startExploring = (school?: string) => {
     setSearchQuery(''); setSelectedPhilosopher(null); setSharedFocus(null)
@@ -1748,7 +1772,7 @@ export default function WesternPhilosophyMap({
       // 关系文本：从 influenceTypes 数据库中查找 label_zh
       const raw = influence.rawType || influence.type
       const influenceTypeObj = influenceTypes.find(t => t.value === raw)
-      const relationVerb = influenceTypeObj?.label_zh || raw  // 使用数据库的 label_zh，fallback 到原始值
+      const relationVerb = (en ? influenceTypeObj?.label_en : influenceTypeObj?.label_zh) || raw  // 使用数据库的 label_zh，fallback 到原始值
       
       // 简化标签文字
       const labelText = relationVerb
@@ -1921,7 +1945,7 @@ export default function WesternPhilosophyMap({
     })
     
     return edges
-  }, [filteredInfluences, highlightedPhilosopherId, ancestorIds, descendantIds, layoutPositions, filteredPhilosophers, influenceTypes])
+  }, [filteredInfluences, highlightedPhilosopherId, ancestorIds, descendantIds, layoutPositions, filteredPhilosophers, influenceTypes, en])
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
@@ -1972,7 +1996,7 @@ export default function WesternPhilosophyMap({
       <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
-          <p className="text-lg text-gray-600">加载哲学数据中...</p>
+          <p className="text-lg text-gray-600">{t('加载哲学数据中...')}</p>
         </div>
       </div>
     )
@@ -1984,13 +2008,13 @@ export default function WesternPhilosophyMap({
       <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50">
         <div className="text-center space-y-4 max-w-md">
           <div className="text-red-600 text-5xl">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800">加载失败</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t('加载失败')}</h2>
           <p className="text-gray-600">{error}</p>
           <Button
             onClick={() => window.location.reload()}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            重新加载
+            {t('重新加载')}
           </Button>
         </div>
       </div>
@@ -2003,10 +2027,15 @@ export default function WesternPhilosophyMap({
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-3 sm:p-4 md:p-6 shadow-lg">
         <div className="px-2 sm:px-4 md:px-6 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">西方哲学思想脉络图</h1>
-            <p className="text-xs sm:text-sm md:text-base text-blue-100">探索从古希腊到当代西方哲学思想的传承与演变</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2">{t('西方哲学思想脉络图')}</h1>
+            <p className="text-xs sm:text-sm md:text-base text-blue-100">{t('探索从古希腊到当代西方哲学思想的传承与演变')}</p>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 flex-shrink-0 self-stretch sm:self-auto">
+            {onLocaleChange && <Button variant="secondary" size="sm" className="h-8 md:h-10 text-xs md:text-sm" lang={en ? 'zh-CN' : 'en'}
+              aria-label={en ? '切换为中文' : 'Switch to English'} onClick={() => onLocaleChange(en ? 'zh' : 'en', {
+                layout: layoutMode, philosopher: selectedPhilosopher?.id, query: searchQuery,
+                schools: Array.from(selectedSchools), periods: Array.from(selectedPeriods), levels: Array.from(selectedLevels)
+              })}>{en ? '中文' : 'English'}</Button>}
             <Button
               asChild
               variant="secondary"
@@ -2017,8 +2046,8 @@ export default function WesternPhilosophyMap({
                 href="https://github.com/adonisly/western-philosophy-map"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="西方哲学图谱 GitHub 源码与 Star 支持（新窗口打开）"
-                title="查看西方哲学图谱源码、提交建议或 Star 支持项目"
+                aria-label={t('西方哲学图谱 GitHub 源码与 Star 支持（新窗口打开）')}
+                title={t('查看西方哲学图谱源码、提交建议或 Star 支持项目')}
               >
                 <Github className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
                 <span>GitHub<span className="hidden sm:inline"> / Star</span></span>
@@ -2026,14 +2055,14 @@ export default function WesternPhilosophyMap({
             </Button>
             <Button variant="ghost" size="sm" onClick={() => openShare()}
               className="gap-1.5 h-8 md:h-10 px-2 text-xs sm:text-sm text-white hover:bg-white/20 focus-visible:ring-white">
-              <Share2 className="h-3.5 w-3.5" aria-hidden="true" />分享
+              <Share2 className="h-3.5 w-3.5" aria-hidden="true" />{t("分享")}
             </Button>
             {sourceHref && (
               <Button asChild variant="ghost" size="sm"
                 className="h-8 md:h-10 px-2 text-xs sm:text-sm text-white hover:bg-white/20 focus-visible:ring-white">
                 <a href={sourceHref} target="_blank" rel="noopener noreferrer"
-                  aria-label="查看本版本源码与 AGPL-3.0 许可" title="查看本版本源码与 AGPL-3.0 许可">
-                  源码<span className="hidden sm:inline"> · AGPL-3.0</span>
+                  aria-label={t('查看本版本源码与 AGPL-3.0 许可')} title={t('查看本版本源码与 AGPL-3.0 许可')}>
+                  {t('源码')}<span className="hidden sm:inline"> · AGPL-3.0</span>
                 </a>
               </Button>
             )}
@@ -2043,9 +2072,9 @@ export default function WesternPhilosophyMap({
               size="sm"
               className="gap-1.5 md:gap-2 h-8 md:h-10 px-2 sm:px-3 text-xs md:text-sm text-white hover:bg-white/20 focus-visible:ring-white"
             >
-              <a href={homeHref} aria-label="返回阅读路书首页" title="返回阅读路书首页">
+              <a href={homeHref} aria-label={t('返回阅读路书首页')} title={t('返回阅读路书首页')}>
                 <Home className="h-3.5 w-3.5 md:h-4 md:w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">返回首页</span>
+                <span className="hidden sm:inline">{t('返回首页')}</span>
               </a>
             </Button>
           </div>
@@ -2078,14 +2107,14 @@ export default function WesternPhilosophyMap({
                           setAutoFitTrigger(trigger)
                         }
                       }}
-                      placeholder="搜索哲学家（中文/英文）、流派或思想（支持拼音/首字母）"
+                      placeholder={t("搜索哲学家（中文/英文）、流派或思想（支持拼音/首字母）")}
                       hotSearches={hotSearches}
                       globalHotTerms={searchHotTerms}
                       onTrackSearch={onTrackSearch}
                       philosophers={philosophers}
                       onSelectPhilosopher={(philosopher) => {
                         // 设置搜索query，这会触发筛选和高亮
-                        setSearchQuery(philosopher.name.zh)
+                        setSearchQuery(primaryName(philosopher))
                         // 触发自动定位
                         const trigger = `select_${philosopher.id}_${Date.now()}`
                         setAutoFitTrigger(trigger)
@@ -2095,44 +2124,44 @@ export default function WesternPhilosophyMap({
                 </div>
                 
                 {/* 布局模式切换 */}
-                <div className="flex items-center gap-1.5 md:gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+                <div className="flex w-full max-w-full min-w-0 lg:w-auto items-center gap-1.5 md:gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
                   <Button
                     aria-pressed={layoutMode === 'database'}
                     variant={layoutMode === 'database' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
                     onClick={() => { setLayoutMode('database'); skipNextAutoFitRef.current = true; setResetViewportTrigger(`layout_database_${Date.now()}`) }}
-                    title="使用数据库配置的位置"
-                  >默认</Button>
+                    title={t('使用数据库配置的位置')}
+                  >{t('默认')}</Button>
                   <Button
                     aria-pressed={layoutMode === 'compact'}
                     variant={layoutMode === 'compact' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
                     onClick={() => { setLayoutMode('compact'); skipNextAutoFitRef.current = true; setResetViewportTrigger(`layout_compact_${Date.now()}`) }}
-                    title="紧凑布局：优化横向排列，解决位置冲突"
-                  >紧凑</Button>
+                    title={t('紧凑布局：优化横向排列，解决位置冲突')}
+                  >{t('紧凑')}</Button>
                   <Button
                     aria-pressed={layoutMode === 'school'}
                     variant={layoutMode === 'school' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
                     onClick={() => { setLayoutMode('school'); skipNextAutoFitRef.current = true; setResetViewportTrigger(`layout_school_${Date.now()}`) }}
-                  >流派</Button>
+                  >{t('流派')}</Button>
                   <Button
                     aria-pressed={layoutMode === 'century'}
                     variant={layoutMode === 'century' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
                     onClick={() => { setLayoutMode('century'); skipNextAutoFitRef.current = true; setResetViewportTrigger(`layout_century_${Date.now()}`) }}
-                  >世纪</Button>
+                  >{t('世纪')}</Button>
                   <Button
                     aria-pressed={layoutMode === 'lineage'}
                     variant={layoutMode === 'lineage' ? 'default' : 'outline'}
                     size="sm"
                     className="h-8 md:h-10 px-2 md:px-3 text-xs whitespace-nowrap flex-shrink-0"
                     onClick={() => { setLayoutMode('lineage'); skipNextAutoFitRef.current = true; setResetViewportTrigger(`layout_lineage_${Date.now()}`) }}
-                  >传承</Button>
+                  >{t('传承')}</Button>
                 </div>
               </div>
             </div>
@@ -2158,7 +2187,7 @@ export default function WesternPhilosophyMap({
                 </span>
                 
                 <span className="relative font-medium text-blue-600">
-                  意见反馈
+                  {t('意见反馈')}
                 </span>
                 
                 {/* 小徽章提示 */}
@@ -2183,7 +2212,7 @@ export default function WesternPhilosophyMap({
                   </span>
                 </span>
                 <span className="relative font-medium text-blue-600">
-                  <span className="hidden sm:inline">意见</span>反馈
+                  {t('意见反馈')}
                 </span>
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
               </Button>
@@ -2196,7 +2225,7 @@ export default function WesternPhilosophyMap({
             <div className="flex items-center justify-between p-3 md:p-4 pb-2 md:pb-3">
               <div className="flex items-center gap-2 md:gap-3">
                 <Filter className="h-3.5 w-3.5 md:h-4 md:w-4 text-gray-600" />
-                <span className="font-medium text-xs md:text-sm text-gray-700">筛选条件</span>
+                <span className="font-medium text-xs md:text-sm text-gray-700">{t('筛选条件')}</span>
                 {hasActiveFilters && (
                   <span className="text-xs bg-blue-100 text-blue-600 px-1.5 md:px-2 py-0.5 rounded-full">
                     {selectedSchools.size + selectedPeriods.size + selectedLevels.size}
@@ -2210,19 +2239,19 @@ export default function WesternPhilosophyMap({
                   <Button
                     variant="ghost"
                     size="sm"
-                    aria-label="清除全部筛选"
+                    aria-label={t('清除全部筛选')}
                     onClick={handleClearFilters}
                     className="text-xs h-7 px-2 md:px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <X className="h-3 w-3 mr-0.5 md:mr-1" />
-                    <span className="hidden sm:inline">清除</span>
+                    <span className="hidden sm:inline">{t('清除')}</span>
                   </Button>
                 )}
                 {/* 折叠按钮 */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  aria-label={filterCollapsed ? "展开筛选条件" : "收起筛选条件"}
+                  aria-label={t(filterCollapsed ? "展开筛选条件" : "收起筛选条件")}
                   aria-expanded={!filterCollapsed}
                   onClick={() => setFilterCollapsed(!filterCollapsed)}
                   className="text-xs h-7 px-2 md:px-3"
@@ -2230,12 +2259,12 @@ export default function WesternPhilosophyMap({
                   {filterCollapsed ? (
                     <>
                       <ChevronDown className="h-3 w-3 mr-0.5 md:mr-1" />
-                      <span className="hidden sm:inline">展开</span>
+                      <span className="hidden sm:inline">{t('展开')}</span>
                     </>
                   ) : (
                     <>
                       <ChevronUp className="h-3 w-3 mr-0.5 md:mr-1" />
-                      <span className="hidden sm:inline">收起</span>
+                      <span className="hidden sm:inline">{t('收起')}</span>
                     </>
                   )}
                 </Button>
@@ -2247,7 +2276,7 @@ export default function WesternPhilosophyMap({
               <div className="px-3 md:px-4 pb-3 md:pb-4 space-y-2 md:space-y-3 max-h-[200px] md:max-h-[240px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                 {/* 流派筛选 - 移动端垂直堆叠，桌面端横向 */}
                 <div className="flex flex-col sm:flex-row sm:items-start gap-2 md:gap-3">
-                <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap min-w-[50px] md:min-w-[60px] pt-1">流派:</span>
+                <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap min-w-[50px] md:min-w-[60px] pt-1">{t('流派:')}</span>
                 <div className="flex flex-wrap gap-1.5 md:gap-2">
                   <Button
                     variant={selectedSchools.size === 0 ? "default" : "outline"}
@@ -2255,7 +2284,7 @@ export default function WesternPhilosophyMap({
                     className="h-7 px-2 md:px-3 text-xs"
                     onClick={() => { setSelectedSchools(new Set()); skipNextAutoFitRef.current = true; setResetViewportTrigger(`schools_all_${Date.now()}`) }}
                   >
-                    全部流派
+                    {t('全部流派')}
                   </Button>
                   {schools.map(school => (
                     <Button
@@ -2269,7 +2298,7 @@ export default function WesternPhilosophyMap({
                         className="w-2 h-2 rounded-full" 
                         style={{ backgroundColor: school.color }}
                       />
-                      {school.name}
+                      {schoolLabel(school.name)}
                     </Button>
                   ))}
                 </div>
@@ -2277,7 +2306,7 @@ export default function WesternPhilosophyMap({
 
               {/* 时代筛选 - 移动端垂直堆叠，桌面端横向 */}
               <div className="flex flex-col sm:flex-row sm:items-start gap-2 md:gap-3">
-                <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap min-w-[50px] md:min-w-[60px] pt-1">时代:</span>
+                <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap min-w-[50px] md:min-w-[60px] pt-1">{t('时代:')}</span>
                 <div className="flex flex-wrap gap-1.5 md:gap-2">
                   <Button
                     variant={selectedPeriods.size === 0 ? "default" : "outline"}
@@ -2285,7 +2314,7 @@ export default function WesternPhilosophyMap({
                     className="h-7 px-2 md:px-3 text-xs"
                     onClick={() => { setSelectedPeriods(new Set()); skipNextAutoFitRef.current = true; setResetViewportTrigger(`periods_all_${Date.now()}`) }}
                   >
-                    全部时代
+                    {t('全部时代')}
                   </Button>
                   {timePeriods.map(period => (
                     <Button
@@ -2295,7 +2324,7 @@ export default function WesternPhilosophyMap({
                       className="h-7 px-2 md:px-3 text-xs"
                       onClick={() => setSelectedPeriods(prev => { const next = new Set(prev); if (next.has(period.id)) next.delete(period.id); else next.add(period.id); return next; })}
                     >
-                      {period.label}
+                      {century(period.id)}
                     </Button>
                   ))}
                 </div>
@@ -2303,7 +2332,7 @@ export default function WesternPhilosophyMap({
 
               {/* 层级筛选 - 移动端垂直堆叠，桌面端横向 */}
               <div className="flex flex-col sm:flex-row sm:items-start gap-2 md:gap-3">
-                <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap min-w-[50px] md:min-w-[60px] pt-1">层级:</span>
+                <span className="text-xs md:text-sm text-gray-600 whitespace-nowrap min-w-[50px] md:min-w-[60px] pt-1">{t('层级:')}</span>
                 <div className="flex flex-wrap gap-1.5 md:gap-2">
                   <Button
                     variant={selectedLevels.size === 0 ? "default" : "outline"}
@@ -2311,7 +2340,7 @@ export default function WesternPhilosophyMap({
                     className="h-7 px-2 md:px-3 text-xs"
                     onClick={() => { setSelectedLevels(new Set()); skipNextAutoFitRef.current = true; setResetViewportTrigger(`levels_all_${Date.now()}`) }}
                   >
-                    全部层级
+                    {t('全部层级')}
                   </Button>
                   {availableLevels.map(level => {
                     // 计算该层级有多少个流派
@@ -2323,7 +2352,7 @@ export default function WesternPhilosophyMap({
                         size="sm"
                         className="h-7 px-2 md:px-3 text-xs"
                         onClick={() => setSelectedLevels(prev => { const next = new Set(prev); if (next.has(level)) next.delete(level); else next.add(level); return next; })}
-                        title={`第 ${level} 层级：${schoolsAtLevel.map(s => s.name).join('、')}`}
+                        title={en ? `Level ${level}: ${schoolsAtLevel.map(s => schoolLabel(s.name)).join(', ')}` : `第 ${level} 层级：${schoolsAtLevel.map(s => s.name).join('、')}`}
                       >
                         {level}
                       </Button>
@@ -2341,36 +2370,36 @@ export default function WesternPhilosophyMap({
             <span className="text-blue-800 leading-relaxed">
               {searchQuery ? (
                 <>
-                  找到 <span className="font-semibold">{searchMatchedIds.size}</span> 位匹配的哲学家
-                  <span className="ml-1 md:ml-2 opacity-70 hidden sm:inline">（筛选匹配 {filteredPhilosophers.length} 位）</span>
+                  {en ? 'Found ' : '找到 '}<span className="font-semibold">{searchMatchedIds.size}</span>{en ? ' matching philosophers' : ' 位匹配的哲学家'}
+                  <span className="ml-1 md:ml-2 opacity-70 hidden sm:inline">{en ? `(${filteredPhilosophers.length} match filters)` : `（筛选匹配 ${filteredPhilosophers.length} 位）`}</span>
                 </>
               ) : hasActiveFilters ? (
                 <>
-                  筛选匹配 <span className="font-semibold">{filteredPhilosophers.length}</span> / {philosophers.length} 位哲学家
+                  {en ? 'Filtered: ' : '筛选匹配 '}<span className="font-semibold">{filteredPhilosophers.length}</span> / {philosophers.length}{en ? ' philosophers' : ' 位哲学家'}
                 </>
               ) : (
                 <>
-                  当前共有 <span className="font-semibold">{philosophers.length}</span> 位思想家
+                  {en ? 'Explore ' : '当前共有 '}<span className="font-semibold">{philosophers.length}</span>{en ? ' thinkers' : ' 位思想家'}
                 </>
               )}
                 {searchQuery && (
                   <span className="ml-1 md:ml-2 bg-blue-100 px-1.5 md:px-2 py-0.5 rounded text-xs">
-                    关键词: "{searchQuery}"
+                    {t("关键词:")} "{searchQuery}"
                   </span>
                 )}
                 {selectedSchools.size > 0 && (
                   <span className="ml-1 md:ml-2 bg-blue-100 px-1.5 md:px-2 py-0.5 rounded text-xs">
-                    流派: {(() => { const arr = Array.from(selectedSchools); const shown = arr.slice(0,3).join(', '); return arr.length > 3 ? `${shown} 等${arr.length}项` : shown })()}
+                    {t("流派:")} {(() => { const arr = Array.from(selectedSchools).map(name => schoolLabel(name)); const shown = arr.slice(0,3).join(', '); return arr.length > 3 ? (en ? `${shown} (${arr.length} selected)` : `${shown} 等${arr.length}项`) : shown })()}
                   </span>
                 )}
                 {selectedLevels.size > 0 && (
                   <span className="ml-1 md:ml-2 bg-blue-100 px-1.5 md:px-2 py-0.5 rounded text-xs">
-                    层级: {Array.from(selectedLevels).sort((a, b) => a - b).map(l => `第${l}层级`).join(', ')}
+                    {t("层级:")} {Array.from(selectedLevels).sort((a, b) => a - b).map(l => en ? `Level ${l}` : `第${l}层级`).join(', ')}
                   </span>
                 )}
                 {selectedPeriods.size > 0 && (
                   <span className="ml-1 md:ml-2 bg-blue-100 px-1.5 md:px-2 py-0.5 rounded text-xs">
-                    时代: {(() => { const labels = Array.from(selectedPeriods).map(id => (timePeriods.find(p => p.id === id)?.label) || id); const shown = labels.slice(0,3).join(', '); return labels.length > 3 ? `${shown} 等${labels.length}项` : shown })()}
+                    {t("时代:")} {(() => { const labels = Array.from(selectedPeriods).map(id => century(id)); const shown = labels.slice(0,3).join(', '); return labels.length > 3 ? (en ? `${shown} (${labels.length} selected)` : `${shown} 等${labels.length}项`) : shown })()}
                   </span>
                 )}
               </span>
@@ -2378,12 +2407,12 @@ export default function WesternPhilosophyMap({
         </div>
       </div>
 
-      <nav aria-label="探索起点" className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-gray-100 bg-white px-4 sm:px-8 py-2 text-xs text-gray-600">
-        <span>从这里开始</span>
-        <button className="rounded text-blue-700 hover:underline focus-visible:outline-blue-600" onClick={() => startExploring()}>苏格拉底的思想传承</button>
+      <nav aria-label={t('探索起点')} className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-gray-100 bg-white px-4 sm:px-8 py-2 text-xs text-gray-600">
+        <span>{t('从这里开始')}</span>
+        <button className="rounded text-blue-700 hover:underline focus-visible:outline-blue-600" onClick={() => startExploring()}>{t('苏格拉底的思想传承')}</button>
         {['实用主义', '德国古典哲学'].filter(name => schools.some(s => s.name === name)).map(name =>
-          <button key={name} className="rounded text-blue-700 hover:underline focus-visible:outline-blue-600" onClick={() => startExploring(name)}>{name}</button>)}
-        {catalogHref && <a href={catalogHref} className="ml-auto text-blue-700 hover:underline">人物与流派索引</a>}
+          <button key={name} className="rounded text-blue-700 hover:underline focus-visible:outline-blue-600" onClick={() => startExploring(name)}>{schoolLabel(name)}</button>)}
+        {catalogHref && <a href={catalogHref} className="ml-auto text-blue-700 hover:underline">{t('人物与流派索引')}</a>}
       </nav>
 
       {shareInfo && <ShareDialog title={shareInfo.title} url={shareInfo.url} onClose={() => setShareInfo(null)} />}
@@ -2433,7 +2462,7 @@ export default function WesternPhilosophyMap({
           {false && (
             <Panel position="top-left" className="mt-4 ml-4" style={{ width: '200px' }}>
               <div className="bg-white/90 backdrop-blur p-4 rounded-lg shadow-lg">
-                <h3 className="font-bold text-gray-800 mb-2">关系类型</h3>
+                <h3 className="font-bold text-gray-800 mb-2">{t('关系类型')}</h3>
                 <div className="space-y-2 text-sm">
                   {influenceTypes.map((type: any) => {
                     // 根据类型决定是否使用虚线
@@ -2449,7 +2478,7 @@ export default function WesternPhilosophyMap({
                             background: !isDashed ? (type.color || '#3b82f6') : 'transparent'
                           }} 
                         />
-                        <span className="text-gray-600">{type.label_zh || type.value}</span>
+                        <span className="text-gray-600">{(en ? type.label_en : type.label_zh) || type.value}</span>
                       </div>
                     )
                   })}
@@ -2465,7 +2494,7 @@ export default function WesternPhilosophyMap({
               <button
                 onClick={() => setZoomControlExpanded(true)}
                 className="bg-white/90 backdrop-blur p-2.5 md:p-3 rounded-lg shadow-lg hover:bg-white transition-colors active:scale-95"
-                title="展开缩放控制"
+                title={t('展开缩放控制')}
               >
                 <ZoomIn className="h-5 w-5 md:h-5 md:w-5 text-gray-700" />
               </button>
@@ -2473,11 +2502,11 @@ export default function WesternPhilosophyMap({
               // 展开状态 - 显示完整卡片
               <div className="bg-white/90 backdrop-blur rounded-lg shadow-lg" style={{ width: '160px' }}>
                 <div className="flex items-center justify-between p-2.5 md:p-3 border-b">
-                  <h3 className="font-bold text-gray-800 text-xs md:text-sm">缩放控制</h3>
+                  <h3 className="font-bold text-gray-800 text-xs md:text-sm">{t('缩放控制')}</h3>
                   <button
                     onClick={() => setZoomControlExpanded(false)}
                     className="text-gray-500 hover:text-gray-700 active:scale-90"
-                    title="收起"
+                    title={t('收起')}
                   >
                     <X className="h-3.5 w-3.5 md:h-4 md:w-4" />
                   </button>
@@ -2496,7 +2525,7 @@ export default function WesternPhilosophyMap({
               <button
                 onClick={() => setMinimapExpanded(true)}
                 className="bg-white/90 backdrop-blur p-2.5 md:p-3 rounded-lg shadow-lg hover:bg-white transition-colors active:scale-95"
-                title="展开预览图"
+                title={t('展开预览图')}
               >
                 <MapIcon className="h-5 w-5 text-gray-700" />
               </button>
@@ -2504,11 +2533,11 @@ export default function WesternPhilosophyMap({
               // 展开状态 - 显示MiniMap
               <div className="bg-white/95 backdrop-blur rounded-lg shadow-lg overflow-hidden relative" style={{ width: '160px' }}>
                 <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200 relative z-10">
-                  <h3 className="font-semibold text-gray-800 text-xs">预览图</h3>
+                  <h3 className="font-semibold text-gray-800 text-xs">{t('预览图')}</h3>
                   <button
                     onClick={() => setMinimapExpanded(false)}
                     className="bg-gray-800 text-white hover:bg-red-600 flex-shrink-0 active:scale-90 rounded-full p-1.5 transition-all shadow-sm"
-                    title="关闭预览图"
+                    title={t('关闭预览图')}
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -2536,49 +2565,55 @@ export default function WesternPhilosophyMap({
       </div>
 
       {/* 详细信息侧边栏（点击哲学家时显示） */}
-      {selectedPhilosopher && (
+      {displayedPerson && (
         <div className="fixed right-0 top-0 h-full w-full sm:w-96 md:w-[28rem] lg:w-96 bg-white shadow-2xl z-50 overflow-y-auto">
           <div className="p-4 sm:p-5 md:p-6">
             <button
               onClick={() => setSelectedPhilosopher(null)}
-              aria-label="关闭人物详情"
+              aria-label={t('关闭人物详情')}
               className="absolute top-3 sm:top-4 right-3 sm:right-4 text-gray-500 hover:text-gray-700 p-1 hover:bg-gray-100 rounded active:scale-90"
             >
               <X className="h-5 w-5" />
             </button>
             
             <div className="space-y-3 sm:space-y-4">
+              {en && <p className="rounded bg-amber-50 p-3 text-xs text-amber-900" role="note">
+                {'translationStatus' in displayedPerson && ['missing','stale'].includes(String(displayedPerson.translationStatus))
+                  ? 'English translation is missing or awaiting an update for some fields; the Chinese source is shown there.'
+                  : 'Machine-assisted translation of the Chinese study notes. Terminology and quotations may need correction; quotations are translations, not verified original wording.'}
+                {' '}<a className="underline" href="https://github.com/adonisly/western-philosophy-map/issues">Suggest a correction</a>
+              </p>}
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900 pr-8">
-                  {selectedPhilosopher.name.zh}
+                  {primaryName(displayedPerson)}
                 </h2>
-                <p className="text-sm sm:text-base text-gray-600 italic">{selectedPhilosopher.name.en}</p>
+                <p className="text-sm sm:text-base text-gray-600 italic">{secondaryName(displayedPerson)}</p>
               </div>
 
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => openShare(selectedPhilosopher)}>
-                <Share2 className="h-4 w-4" aria-hidden="true" />分享此人物
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => openShare(displayedPerson)}>
+                <Share2 className="h-4 w-4" aria-hidden="true" />{t("分享此人物")}
               </Button>
 
               <div className="text-xs sm:text-sm text-gray-600">
-                {selectedPhilosopher.birthYear} ~ {selectedPhilosopher.deathYear}
+                {year(displayedPerson.birthYear)} ~ {year(displayedPerson.deathYear)}
               </div>
 
               <div>
                 <span 
                   className="inline-block px-2.5 sm:px-3 py-1 rounded text-white text-xs sm:text-sm font-medium"
-                  style={{ backgroundColor: selectedPhilosopher.schoolColor }}
+                  style={{ backgroundColor: displayedPerson.schoolColor }}
                 >
-                  {selectedPhilosopher.school}
+                  {schoolLabel(displayedPerson.school)}
                 </span>
               </div>
 
-              {selectedPhilosopher.detailedBio && selectedPhilosopher.detailedBio.length > 0 && (
+              {displayedPerson.detailedBio && displayedPerson.detailedBio.length > 0 && (
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">生平简介</h3>
+                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">{t('生平简介')}</h3>
                   <ul className="space-y-1.5 sm:space-y-2">
-                    {(Array.isArray(selectedPhilosopher.detailedBio) 
-                      ? selectedPhilosopher.detailedBio 
-                      : [selectedPhilosopher.detailedBio]
+                    {(Array.isArray(displayedPerson.detailedBio)
+                      ? displayedPerson.detailedBio
+                      : [displayedPerson.detailedBio]
                     ).map((bio, index) => (
                       <li key={index} className="text-gray-600 text-xs sm:text-sm flex items-start gap-2">
                         <span className="text-blue-500 mt-1">•</span>
@@ -2589,11 +2624,11 @@ export default function WesternPhilosophyMap({
                 </div>
               )}
 
-              {selectedPhilosopher.inheritedThoughts && selectedPhilosopher.inheritedThoughts.length > 0 && (
+              {displayedPerson.inheritedThoughts && displayedPerson.inheritedThoughts.length > 0 && (
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">思想继承</h3>
+                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">{t('思想继承')}</h3>
                   <ul className="space-y-1.5 sm:space-y-2">
-                    {selectedPhilosopher.inheritedThoughts.map((thought, index) => (
+                    {displayedPerson.inheritedThoughts.map((thought, index) => (
                       <li key={index} className="text-gray-600 text-xs sm:text-sm flex items-start gap-2">
                         <span className="text-green-500 mt-1">•</span>
                         <span>{thought}</span>
@@ -2604,9 +2639,9 @@ export default function WesternPhilosophyMap({
               )}
 
               <div>
-                <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">主要思想</h3>
+                <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">{t('主要思想')}</h3>
                 <ul className="space-y-1.5 sm:space-y-2">
-                  {selectedPhilosopher.mainIdeas.map((idea, index) => (
+                  {displayedPerson.mainIdeas.map((idea, index) => (
                     <li key={index} className="text-gray-600 text-xs sm:text-sm flex items-start gap-2">
                       <span className="text-blue-500 mt-1">•</span>
                       <span>{idea}</span>
@@ -2615,13 +2650,13 @@ export default function WesternPhilosophyMap({
                 </ul>
               </div>
 
-              {selectedPhilosopher.laterInfluence && selectedPhilosopher.laterInfluence.length > 0 && (
+              {displayedPerson.laterInfluence && displayedPerson.laterInfluence.length > 0 && (
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">后世影响</h3>
+                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">{t('后世影响')}</h3>
                   <ul className="space-y-1.5 sm:space-y-2">
-                    {(Array.isArray(selectedPhilosopher.laterInfluence) 
-                      ? selectedPhilosopher.laterInfluence 
-                      : [selectedPhilosopher.laterInfluence]
+                    {(Array.isArray(displayedPerson.laterInfluence)
+                      ? displayedPerson.laterInfluence
+                      : [displayedPerson.laterInfluence]
                     ).map((impact, index) => (
                       <li key={index} className="text-gray-600 text-xs sm:text-sm flex items-start gap-2">
                         <span className="text-purple-500 mt-1">•</span>
@@ -2632,11 +2667,11 @@ export default function WesternPhilosophyMap({
                 </div>
               )}
 
-              {selectedPhilosopher.majorWorks && selectedPhilosopher.majorWorks.length > 0 && (
+              {displayedPerson.majorWorks && displayedPerson.majorWorks.length > 0 && (
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">主要著作</h3>
+                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">{t('主要著作')}</h3>
                   <ul className="space-y-1">
-                    {selectedPhilosopher.majorWorks.map((work, index) => (
+                    {displayedPerson.majorWorks.map((work, index) => (
                       <li key={index} className="text-gray-600 text-xs sm:text-sm">
                         {work}
                       </li>
@@ -2645,12 +2680,12 @@ export default function WesternPhilosophyMap({
                 </div>
               )}
 
-              {selectedPhilosopher.quotes && selectedPhilosopher.quotes.length > 0 && (
+              {displayedPerson.quotes && displayedPerson.quotes.length > 0 && (
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">人物标签</h3>
+                  <h3 className="font-bold text-sm sm:text-base text-gray-800 mb-2">{t('人物标签')}</h3>
                   <div className="bg-gray-50 p-2.5 sm:p-3 rounded border-l-4 border-blue-500">
                     <p className="text-gray-700 italic text-xs sm:text-sm">
-                      "{selectedPhilosopher.quotes[0]}"
+                      "{displayedPerson.quotes[0]}"
                     </p>
                   </div>
                 </div>

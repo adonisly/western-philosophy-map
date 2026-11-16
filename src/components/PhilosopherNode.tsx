@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import React, { memo } from 'react'
 import { Handle, Position } from 'reactflow'
+import { useI18n } from '../i18n'
 import { Philosopher } from '../types/western-philosophy'
 
 interface PhilosopherNodeProps {
@@ -18,7 +19,9 @@ interface PhilosopherNodeProps {
 }
 
 const PhilosopherNode = memo(({ data, selected }: PhilosopherNodeProps) => {
-  const { philosopher, onClick, isHighlighted, isConnected, isAncestor, isDescendant, isDimmed, isSameLevel } = data
+  const { en, localize, primaryName, secondaryName, schoolLabel, year } = useI18n()
+  const { philosopher: original, onClick, isHighlighted, isConnected, isAncestor, isDescendant, isDimmed, isSameLevel } = data
+  const philosopher = localize(original)
 
   return (
     <div 
@@ -40,7 +43,7 @@ const PhilosopherNode = memo(({ data, selected }: PhilosopherNodeProps) => {
         minHeight: '280px',
         animation: isHighlighted ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none'
       }}
-      onClick={() => onClick?.(philosopher)}
+      onClick={() => onClick?.(original)}
     >
       {/* 顶部颜色条 */}
       <div 
@@ -66,22 +69,22 @@ const PhilosopherNode = memo(({ data, selected }: PhilosopherNodeProps) => {
       )}
       
       {/* 卡片内容 */}
-      <div className="p-3 space-y-1.5 h-full flex flex-col overflow-hidden">
+      <div className="p-3 space-y-1.5 flex flex-col overflow-hidden" style={{height: 'calc(100% - 8px)'}}>
         {/* 年代和国籍 */}
         <div className="text-xs text-gray-500 font-mono flex-shrink-0">
-          {philosopher.birthYear} ~ {philosopher.deathYear}
+          {year(philosopher.birthYear)} ~ {year(philosopher.deathYear)}
           {philosopher.nationality && <span> • {philosopher.nationality}</span>}
         </div>
         
         {/* 名字 */}
         <div className="flex-shrink-0">
-          <h3 className={`text-base font-bold transition-colors ${
+          <h3 className={`text-base font-bold leading-tight line-clamp-2 break-words transition-colors ${
             isHighlighted ? 'text-yellow-600' : 'text-gray-900'
           }`}>
-            {philosopher.name.zh}
+            {primaryName(philosopher)}
           </h3>
           <p className="text-xs text-gray-600 italic line-clamp-1">
-            {philosopher.name.en}
+            {secondaryName(philosopher)}
           </p>
         </div>
         
@@ -93,7 +96,7 @@ const PhilosopherNode = memo(({ data, selected }: PhilosopherNodeProps) => {
             }`}
             style={{ backgroundColor: philosopher.schoolColor }}
           >
-            {philosopher.school}
+            {schoolLabel(philosopher.school)}
           </div>
         </div>
         
@@ -110,7 +113,7 @@ const PhilosopherNode = memo(({ data, selected }: PhilosopherNodeProps) => {
         {/* 人物标签（如果有） */}
         {philosopher.quotes && philosopher.quotes.length > 0 && (
           <div className="text-xs text-gray-500 italic border-l-2 border-gray-300 pl-2 flex-shrink-0 line-clamp-1">
-            "{philosopher.quotes[0]}"
+            {en ? 'Translated: ' : ''}"{philosopher.quotes[0]}"
           </div>
         )}
       </div>

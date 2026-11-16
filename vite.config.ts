@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import { defineConfig } from 'vite'
+import { resolve } from 'node:path'
 import { readFileSync } from 'node:fs'
 import { createSiteContent } from './scripts/site-content.mjs'
 
@@ -11,21 +12,22 @@ const banner = '/*!\nSPDX-License-Identifier: AGPL-3.0-only\nCorresponding sourc
 
 export default defineConfig({
   base: './',
+  build: { rollupOptions: { input: { main: resolve(import.meta.dirname, 'index.html'), english: resolve(import.meta.dirname, 'en/index.html') } } },
   plugins: [{
     name: 'public-site-content',
-    transformIndexHtml(html) {
-      const site = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION)
-      return html.replace('<!--SITE:HEAD-->', site.head).replace('<!--SITE:INTRO-->', site.intro)
+    transformIndexHtml(html, context) {
+      const site = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION, JSON.parse(readNotice('public/data/locales/en.json')))
+      return html.replace('<!--SITE:HEAD-->', context.path.startsWith('/en/') ? site.enHead : site.head).replace('<!--SITE:INTRO-->', context.path.startsWith('/en/') ? site.enIntro : site.intro)
     },
     generateBundle() {
-      const site = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION)
+      const site = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION, JSON.parse(readNotice('public/data/locales/en.json')))
       for (const [fileName, source] of Object.entries(site.assets)) this.emitFile({ type: 'asset', fileName, source })
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const path = new URL(req.url || '/', 'http://localhost').pathname
-        const assets = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION).assets
-        const file = path === '/explore/' ? 'explore/index.html' : path.slice(1)
+        const assets = createSiteContent(JSON.parse(readNotice('public/data/philosophy.json')), process.env.VITE_SITE_URL, process.env.VITE_GOOGLE_SITE_VERIFICATION, JSON.parse(readNotice('public/data/locales/en.json'))).assets
+        const file = path.endsWith('/explore/') ? path.slice(1) + 'index.html' : path.slice(1)
         if (!Object.hasOwn(assets, file)) return next()
         res.setHeader('Content-Type', file.endsWith('.html') ? 'text/html; charset=utf-8' : file.endsWith('.xml') ? 'application/xml' : 'text/plain')
         res.end(assets[file as keyof typeof assets])

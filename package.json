@@ -1,6 +1,6 @@
 {
   "name": "western-philosophy-map",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "西方哲学思想脉络图 — Interactive Western Philosophy Map",
@@ -9,10 +9,11 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 3100",
-    "build": "npm run check:data && tsc --noEmit && vite build",
+    "build": "npm run check:data && npm run check:translations && tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 3100",
     "check:data": "node scripts/check-data.mjs",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "check:translations": "node scripts/check-translations.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.1.1",
@@ -30,7 +31,7 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "autoprefixer": "10.4.21",
-    "postcss": "8.5.6",
+    "postcss": "8.5.33",
     "tailwindcss": "3.4.18",
     "typescript": "5.9.3",
     "vite": "^7.2.2"

@@ -1,5 +1,13 @@
 # 更新记录
 
+## 0.3.0 — 2026-11-16
+
+- Added Chinese / English UI, static `/en/` entry point, English index and language-preserving share links.
+- Added ID-keyed English translations for all 413 philosophers and 115 schools, source-match checks, draft / reviewed status and labelled fallback. Initial biographies remain machine-assisted drafts.
+- Added aligned English README, translation contribution guidance, English screenshot and social cover.
+- Added bilingual metadata, self canonicals, reciprocal hreflang and four sitemap URLs.
+- Fixed narrow-screen English layout controls; updated PostCSS to 8.5.33.
+
 ## 0.2.1 · 2026-11-16
 
 - 默认收起筛选条件，为首次打开的桌面图谱保留更多浏览空间。

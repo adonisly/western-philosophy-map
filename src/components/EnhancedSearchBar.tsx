@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Search, X, Clock, TrendingUp, User } from 'lucide-react'
+import { useI18n } from '../i18n'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 import { getSearchHistory, addToSearchHistory, clearSearchHistory, searchPhilosophers } from '../search'
@@ -23,13 +24,14 @@ export function EnhancedSearchBar({
   value,
   onChange,
   onSearch,
-  placeholder = '搜索哲学家（中文/英文）、流派或思想...',
+  placeholder,
   hotSearches = [],
   philosophers = [],
   onSelectPhilosopher,
   globalHotTerms: suppliedHotTerms,
   onTrackSearch
 }: EnhancedSearchBarProps) {
+  const { t, en, primaryName, secondaryName, schoolLabel, year, hotTerm } = useI18n()
   const [isFocused, setIsFocused] = useState(false)
   const [searchHistory, setSearchHistory] = useState<string[]>([])
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -104,7 +106,7 @@ export function EnhancedSearchBar({
   }
   
   const handleSelectPhilosopher = (philosopher: Philosopher) => {
-    const searchTerm = philosopher.name.zh
+    const searchTerm = primaryName(philosopher)
     onChange(searchTerm)
     addToSearchHistory(searchTerm)
     setSearchHistory(getSearchHistory())
@@ -137,7 +139,8 @@ export function EnhancedSearchBar({
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
           type="text"
-          placeholder={placeholder}
+          placeholder={placeholder || t("搜索哲学家（中文/英文）、流派或思想...")}
+          aria-label={t("搜索哲学家（中文/英文）、流派或思想...")}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setIsFocused(true)}
@@ -151,6 +154,7 @@ export function EnhancedSearchBar({
         {value && (
           <button
             onClick={() => onChange('')}
+            aria-label={t('清除搜索')}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
             <X className="h-4 w-4" />
@@ -166,7 +170,7 @@ export function EnhancedSearchBar({
             <div className="p-2 border-b border-gray-100">
               <div className="flex items-center gap-2 px-2 py-1 text-sm font-medium text-gray-700">
                 <User className="h-4 w-4" />
-                <span>匹配的哲学家</span>
+                <span>{t('匹配的哲学家')}</span>
                 <span className="text-xs text-gray-500">({searchSuggestions.length})</span>
               </div>
               <div className="space-y-1 mt-1">
@@ -179,22 +183,22 @@ export function EnhancedSearchBar({
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                          {philosopher.name.zh}
+                          {primaryName(philosopher)}
                         </div>
                         <div className="text-xs text-gray-500 flex items-center flex-wrap gap-x-2 gap-y-1 mt-0.5">
-                          <span className="font-medium">{philosopher.name.en}</span>
+                          <span className="font-medium">{secondaryName(philosopher)}</span>
                           {philosopher.school && (
                             <>
                               <span>•</span>
-                              <span>{philosopher.school}</span>
+                              <span>{schoolLabel(philosopher.school)}</span>
                             </>
                           )}
                           {philosopher.birthYear && (
                             <>
                               <span>•</span>
                               <span className="whitespace-nowrap">
-                                {philosopher.birthYear < 0 ? `前${Math.abs(philosopher.birthYear)}` : philosopher.birthYear}
-                                {philosopher.deathYear && ` - ${philosopher.deathYear < 0 ? `前${Math.abs(philosopher.deathYear)}` : philosopher.deathYear}`}
+                                {year(philosopher.birthYear)}
+                                {philosopher.deathYear && ` – ${year(philosopher.deathYear)}`}
                               </span>
                             </>
                           )}
@@ -213,7 +217,7 @@ export function EnhancedSearchBar({
               <div className="flex items-center justify-between px-2 py-1">
                 <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <Clock className="h-4 w-4" />
-                  <span>搜索历史</span>
+                  <span>{t('搜索历史')}</span>
                 </div>
                 <Button
                   variant="ghost"
@@ -221,7 +225,7 @@ export function EnhancedSearchBar({
                   onClick={handleClearHistory}
                   className="text-xs text-gray-500 hover:text-gray-700"
                 >
-                  清除
+                  {t("清除")}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2 px-2">
@@ -247,16 +251,16 @@ export function EnhancedSearchBar({
             <div className="p-2">
               <div className="flex items-center gap-2 px-2 py-1 text-sm font-medium text-gray-700">
                 <TrendingUp className="h-4 w-4" />
-                <span>热门搜索</span>
+                <span>{t('热门搜索')}</span>
               </div>
               <div className="flex flex-wrap gap-2 mt-2 px-2">
                 {hotSearchList.map((item, index) => (
                   <button
                     key={index}
-                    onClick={() => handleClickHotSearch(item.term)}
+                    onClick={() => handleClickHotSearch(hotTerm(item.term, philosophers))}
                     className="px-3 py-1 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 text-sm transition-colors flex items-center gap-1"
                   >
-                    {item.term}
+                    {hotTerm(item.term, philosophers)}
                     {(item.count ?? 0) > 0 && <span className="text-xs text-blue-400">({item.count})</span>}
                   </button>
                 ))}
@@ -266,8 +270,8 @@ export function EnhancedSearchBar({
 
           {/* 搜索提示 */}
           <div className="p-3 bg-blue-50 text-xs text-blue-700 border-t border-blue-100">
-            💡 <span className="font-medium">搜索技巧：</span>
-            支持中文、英文名、流派、拼音、首字母搜索。试试 "Hegel"、"德国古典哲学"、"sgld"、"sugeladi" 或 "苏格拉底"
+            💡 <span className="font-medium">{t('搜索技巧：')}</span>
+            {en ? 'Search English or Chinese names, schools, ideas, pinyin or initials. Try “Hegel”, “Empiricism”, “Socrates” or “sgld”.' : '支持中文、英文名、流派、拼音、首字母搜索。试试 "Hegel"、"德国古典哲学"、"sgld"、"sugeladi" 或 "苏格拉底"'}
           </div>
         </div>
       )}

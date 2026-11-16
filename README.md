@@ -1,5 +1,7 @@
 # 西方哲学思想脉络图 · 西方哲学史地图 | Western Philosophy Map
 
+**中文** · [English](README.en.md)
+
 [![License: AGPL-3.0-only](https://img.shields.io/badge/License-AGPL--3.0--only-blue.svg)](LICENSE)
 
 **开源许可：本项目原创代码采用 [AGPL-3.0-only](LICENSE)（仅第 3 版），不采用 MIT 授权。** 修改后通过网络向用户提供服务时，须按许可向这些用户提供该版本的完整对应源码。
@@ -8,11 +10,11 @@
 
 **当前公开快照：413 位哲学家 · 115 个流派 · 131 条关系 · 5 种布局 · 无需数据库**
 
-**[在线体验：开源独立版（推荐）](https://western-philosophy.inklinks.io/)**
+**[在线体验：开源独立版（推荐）](https://western-philosophy.inklinks.io/)** · **[English website](https://western-philosophy.inklinks.io/en/)**
 
 专注哲学图谱浏览，内容随开源版本更新；纠错和建议通过 [GitHub Issues](https://github.com/adonisly/western-philosophy-map/issues) 提交。
 
-A Chinese-language, interactive **Western philosophy map** for exploring the **history of philosophy**, philosophical schools, philosopher influences and intellectual history. Follow a philosophy timeline by century or explore connections in a searchable knowledge graph. Runs with bundled JSON data; no database or API key required.
+A bilingual Chinese–English, interactive **Western philosophy map** for exploring the **history of philosophy**, philosophical schools, philosopher influences and intellectual history. Follow a philosophy timeline by century or explore connections in a searchable knowledge graph. Runs with bundled JSON data; no database or API key required.
 
 [![西方哲学思想脉络图界面：人物卡片、思想传承连线与搜索入口](assets/overview.jpg)](https://western-philosophy.inklinks.io/)
 
@@ -38,6 +40,8 @@ A Chinese-language, interactive **Western philosophy map** for exploring the **h
 如果这个工具对学习有帮助，欢迎点击页面右上角的 **GitHub / Star** 收藏源码；资料纠错请通过 [Issues](https://github.com/adonisly/western-philosophy-map/issues) 提交并附上来源。
 
 ## 分享与探索
+
+- 标题栏的 `中文 / English` 可切换语言，保留当前人物、布局、搜索与筛选；英文站为独立 `/en/` 入口，分享链接保留语言。
 
 - 点击标题栏的「分享」，复制当前布局、搜索与筛选；点击人物详情中的「分享此人物」，让对方直接定位人物并打开详情。链接保留当前站点的域名与路径，不保存拖动和缩放。
 - 从「苏格拉底的思想传承」「实用主义」「德国古典哲学」三个入口开始探索。
@@ -99,10 +103,11 @@ npm ci
 npm run dev
 ```
 
-打开 `http://127.0.0.1:3100`。
+打开中文 `http://127.0.0.1:3100/` 或英文 `http://127.0.0.1:3100/en/`。
 
 ```bash
 npm test
+npm run check:translations
 npm run build
 npm run preview
 ```
@@ -111,7 +116,7 @@ npm run preview
 
 ## 功能与数据
 
-- 中文、英文、拼音和首字母搜索。
+- 中英双语界面、人物卡片、详情与静态索引；中文、英文、拼音和首字母搜索。
 - 按流派、时代、层级筛选。
 - 默认、紧凑、流派、世纪、传承五种布局。
 - 人物详情、主要思想、著作、思想继承和后世影响。
@@ -120,17 +125,21 @@ npm run preview
 
 `public/data/philosophy.json` 保存人物、流派（包括颜色和布局坐标）、关系、关系类型和推荐搜索词。`snapshot-info.json` 记录导出时间、记录数与 SHA-256；它是导出时的溯源信息，贡献者修改数据后由维护者在发布时刷新。
 
+英文内容独立保存在 `public/data/locales/en.json`，按稳定 ID 和逐字段中文原文匹配。首批为机器辅助翻译，流派名称及部分术语、书名已人工整理，其他内容仍待校对；引语明确标注为转译，不作为已经核实的英文原句。原文变化后检测过期译文，缺失或过期时明确回退中文，构建检查要求补齐。维护流程见 [docs/TRANSLATING.md](docs/TRANSLATING.md)。
+
 同一数据快照与同一版本核心使用相同的布局和渲染逻辑。静态版不会实时接收 Readmap 数据库更新，不提供主站的评论、全站搜索次数统计、登录和管理后台；反馈按钮链接到 GitHub Issues。不同浏览器、字体和视口也可能影响像素级显示。
 
 ## 贡献
 
 欢迎通过 Issue 提出纠错或通过 Pull Request 贡献代码和资料。详见 [CONTRIBUTING.md](CONTRIBUTING.md)。人物资料与影响关系是持续整理的学习材料，提交资料时请给出可信来源；影响关系的方向与类型需要有依据。
 
+英文译文修订请参照 [双语维护说明](docs/TRANSLATING.md)，中英文 README 均沿用相同的 13 章结构。
+
 想向同学或读书伙伴介绍这个项目？可参考[项目介绍与演示示例](docs/SHARING.md)，并直接使用仓库内的截图和动图。
 
 ## 网站搜索与分享配置
 
-构建会从公开快照生成首页静态介绍、人物与流派索引、sitemap.xml 和 robots.txt，并加入 canonical、Open Graph 与 Twitter Card。它们改善内容读取与链接预览，不保证收录或排名。
+构建会从公开快照生成中英文首页静态介绍、两种语言的人物与流派索引、sitemap.xml 和 robots.txt，并分别加入自引用 canonical、相互关联的 hreflang、Open Graph 与 Twitter Card。`/en/index.html` 为真实入口，不依赖 SPA 回退。它们改善内容读取与链接预览，不保证收录或排名。
 
 自行部署到其他域名或子目录时，用实际公开地址构建：
 
@@ -138,7 +147,7 @@ npm run preview
 VITE_SITE_URL=https://example.com/philosophy/ VITE_SOURCE_URL=https://github.com/your-name/your-repo/tree/your-commit npm run build
 ```
 
-默认公开地址为本项目独立站。迁移域名时也需修改或移除 `public/CNAME`。分享封面为 [public/social-preview.png](public/social-preview.png)，可编辑源文件为 [assets/social-preview.svg](assets/social-preview.svg)；自建站请同步替换封面上的域名。GitHub 仓库的 Social preview 需在仓库 Settings 中单独上传，网站 Open Graph 不会代替该设置。
+默认公开地址为本项目独立站。迁移域名时也需修改或移除 `public/CNAME`。分享封面为 [public/social-preview.png](public/social-preview.png)，可编辑源文件为 [assets/social-preview.svg](assets/social-preview.svg)；自建站请同步替换封面上的域名。英文封面为 [PNG](public/social-preview-en.png) 与 [SVG](assets/social-preview-en.svg)。GitHub 仓库的 Social preview 需在仓库 Settings 中单独上传，网站 Open Graph 不会代替该设置。
 
 如需接入 Google Search Console，可在 GitHub 仓库 Settings → Secrets and variables → Actions → Variables 中设置 `GOOGLE_SITE_VERIFICATION` 为自己账号生成的 HTML 标签 `content` 值。工作流将其传入构建；其他平台可设置 `VITE_GOOGLE_SITE_VERIFICATION`。未配置时不输出验证标签，复用项目不会自动关联原维护者的账号。完成验证后应保留配置。
 
